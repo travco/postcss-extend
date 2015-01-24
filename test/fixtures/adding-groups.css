@@ -1,0 +1,16 @@
+@simple-extend-define foo {
+  background: pink;
+}
+
+.bar,
+#baz,
+div {
+  @simple-extend-addto foo;
+  color: orange;
+}
+
+[href='#'],
+li:first-child {
+  @simple-extend-addto foo;
+  color: black;
+}

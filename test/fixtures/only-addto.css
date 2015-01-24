@@ -1,0 +1,7 @@
+@simple-extend-define foo {
+  background: pink;
+}
+
+.bar {
+  @simple-extend-addto foo;
+}

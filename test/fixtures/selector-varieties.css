@@ -1,0 +1,37 @@
+/* scattershot selector variety */
+
+@simple-extend-define foo {
+  background: pink;
+}
+
+#bar {
+  @simple-extend-addto foo;
+  color: black;
+}
+
+#bar::before {
+  @simple-extend-addto foo;
+  color: black;
+}
+
+#bar:hover {
+  @simple-extend-addto foo;
+  color: black;
+}
+
+div[attr="bar"] {
+  @simple-extend-addto foo;
+  color: black;
+}
+
+ul,
+li,
+a {
+  @simple-extend-addto foo;
+  color: black;
+}
+
+div ul > li + span ~ span {
+  @simple-extend-addto foo;
+  color: black;
+}

@@ -1,0 +1,42 @@
+{
+  "name": "postcss-simple-extend",
+  "author": {
+    "name": "David Clark",
+    "email": "david.dave.clark@gmail.com",
+    "url": "http://davidtheclark.com"
+  },
+  "license": "MIT",
+  "version": "0.1.0",
+  "description": "Simple extends for PostCSS",
+  "homepage": "https://github.com/davidtheclark/postcss-simple-extend",
+  "repository" : {
+    "type" : "git",
+    "url" : "https://github.com/davidtheclark/postcss-simple-extend.git"
+  },
+  "keywords": [
+    "css",
+    "postcss",
+    "postcss-plugin",
+    "mixin",
+    "clone",
+    "extend"
+  ],
+  "files": [
+    "index.js",
+    "LICENSE",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "main": "index.js",
+  "scripts": {
+    "lint": "eslint index.js test/index.js",
+    "test": "npm run lint && tape test"
+  },
+  "dependencies": {
+    "postcss": "^4.0.0"
+  },
+  "devDependencies": {
+    "eslint": "^0.12.0",
+    "tape": "^3.4.0"
+  }
+}

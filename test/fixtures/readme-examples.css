@@ -1,0 +1,13 @@
+@simple-extend-define gigantic {
+  font-size: 40em;
+}
+
+.foo {
+  @simple-extend-addto gigantic;
+  color: red;
+}
+
+.bar {
+  @simple-extend-addto gigantic;
+  color: orange;
+}
