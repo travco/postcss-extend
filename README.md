@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/davidtheclark/postcss-simple-extend.svg?branch=master)](https://travis-ci.org/davidtheclark/postcss-simple-extend)
+
 # postcss-simple-extend
 
 A [PostCSS](https://github.com/postcss/postcss) plugin to enable *simple* extends in CSS.
