@@ -8,6 +8,8 @@ Use this plugin to **define an abstract, extendable rule set, to which you can, 
 
 *This plugin is compatible with PostCSS v4+.*
 
+> **A Note on mixins & extends**: Mixins copy declarations from an abstract definition into a concrete rule set. Extends clone a concrete rule set's selector(s) and add them an extendable rule set that you have defined. *This* plugin enables simple extends. If you would like to use mixins, as well --- or instead --- have a look at [`postcss-simple-mixin`](https://github.com/davidtheclark/postcss-simple-mixin).
+
 ## Example Input-Output
 
 Input:
@@ -69,7 +71,7 @@ Use the at-rule `@simple-extend-addto` within a rule set to add that rule set's 
 
 ```css
 .list-i-want-to-be-simple {
-  @simple-mixin-extend simple-list;
+  @simple-extend-addto simple-list;
   font-size: 40em;
 }
 ```
