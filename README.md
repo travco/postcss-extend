@@ -62,9 +62,8 @@ With `@simple-extend-define`, you define the abstract, extendable rule set that 
 Some defining guidelines to obey (violations should throw errors):
 - Definitions must occur at the root level (i.e. not inside statements, such as rule sets or `@media` statements).
 - Definitions should only contain declarations and comments: no statements.
----
 
-### Extend an Extendable -- Add Selectors To It
+### Extend an Extendable --- Add Selectors To It
 
 Use the at-rule `@simple-extend-addto` within a rule set to add that rule set's selector(s) to an extendable, which was defined via `@simple-extend-define`.
 
