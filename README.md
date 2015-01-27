@@ -94,6 +94,7 @@ var inputCss = fs.readFileSync('input.css', 'utf8');
 
 var outputCss = postcss()
   .use(simpleExtend)
+  // or .use(simpleExtend())
   .process(inputCss)
   .css;
 

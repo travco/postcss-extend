@@ -61,6 +61,17 @@ test('works when the addto rule set is otherwise empty', function(t) {
   t.end();
 });
 
+test('works when invoked with () or without', function(t) {
+  var someCss = '@simple-extend-define bar { background: pink; } .foo { @simple-extend-addto bar; }';
+
+  t.equal(
+    postcss(simpleMixin).process(someCss).css,
+    postcss(simpleMixin()).process(someCss).css
+  );
+
+  t.end();
+});
+
 function processCss(css) {
   return function() {
     return postcss(simpleMixin).process(css).css;
