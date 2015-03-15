@@ -2,31 +2,34 @@
 
 # postcss-simple-extend
 
-A [PostCSS](https://github.com/postcss/postcss) plugin to enable *simple* extends in CSS.
+**A [PostCSS](https://github.com/postcss/postcss) plugin that enables you to extend placeholder selectors in CSS.**
 
-(simple = no extending of real rule sets, only abstract ones --- much like Sass placeholders)
+Use this plugin to define a rule set with an abstract, extendable selector — a "placeholder selector" — to which you can, later on, add concrete selectors from other rule sets.
 
-Use this plugin to **define an abstract, extendable rule set, to which you can, later on, add concrete selectors from other rule sets.**
+The functionality should mirror Sass's `@extend` with `%` placeholders (a.k.a. "silent classes").
+Unlike Sass's `@extend`, however, *this plugin does not enable you to extend real selectors*: i.e. you cannot `@extend .classname` or `@extend ul > li + li > span a`.
+That key difference makes this plugin *much* more simple, and therefore much less dangerous.
+Many of the concerns people have with Sass's `@extend`, the problems that can arise from its use, simply do not apply to this, more *simple* version. Smart Sass users often recommend to only ever `@extend` placeholders (cf. [Harry Robert]((http://csswizardry.com/2014/01/extending-silent-classes-in-sass/) and [Hugo Giraudel](http://sass-guidelin.es/#extend)): *with this plugin, that recommendation is enforced*.
 
-*This plugin is compatible with PostCSS v4+.*
+**`postcss-simple-extend` is compatible with PostCSS v4+.**
 
-> **A Note on mixins & extends**: Mixins copy declarations from an abstract definition into a concrete rule set. Extends clone a concrete rule set's selector(s) and add them an extendable rule set that you have defined. *This* plugin enables simple extends. If you would like to use mixins, as well --- or instead --- have a look at [`postcss-simple-mixin`](https://github.com/davidtheclark/postcss-simple-mixin).
+> **A Note on "mixins" & "extends"**: Mixins copy declarations from an abstract definition into a concrete rule set. Extends clone a concrete rule set's selector(s) and add them to an abstract placeholder selector. *This* plugin enables extends. If you would like to use mixins, as well — or instead — have a look at [`postcss-mixins`](https://github.com/postcss/postcss-mixins).
 
 ## Example Input-Output
 
 Input:
 ```css
-@simple-extend-define gigantic {
+@define-placeholder gigantic {
   font-size: 40em;
 }
 
 .foo {
-  @simple-extend-addto gigantic;
+  @extend gigantic;
   color: red;
 }
 
 .bar {
-  @simple-extend-addto gigantic;
+  @extend gigantic;
   color: orange;
 }
 ```
@@ -49,39 +52,46 @@ Output:
 
 ## Usage
 
-### Define an Abstract, Extendable Rule Set
+### Define Your Placeholder
 
-With `@simple-extend-define`, you define the abstract, extendable rule set that you will later add selectors to. This rule set has no concrete selectors of its own.
+With `@define-placeholder`, you associate a rule set with a placeholder selector, which you will later extend with concrete selectors.
+
+You can also use `@define-extend` or `@simple-extend-define`, if either of those better fits your mind and situation.
 
 ```css
-@simple-extend-define simple-list {
+@define-placeholder simple-list {
   list-style-type: none;
   margin: 0;
   padding: 0;
 }
+/* or @define-extend simple list {...} */
+/* or @simple-extend-define list {...} */
 ```
 
-`@simple-extend-define` statements will be removed entirely from the generated CSS, replaced by a concrete rule set with the selectors you've added via `@simple-extend-addto` (see example above).
+`@define-placeholder` at-rules, and the placeholder names (e.g. `simple-list`, above), will be removed entirely from the generated CSS, replaced by the selectors you've added via `@extend` (see example above).
 
-Some defining guidelines to obey (violations should throw errors):
+There are some defining guidelines to obey (violations should throw errors):
 - Definitions must occur at the root level (i.e. not inside statements, such as rule sets or `@media` statements).
 - Definitions should only contain declarations and comments: no statements.
 
-### Extend an Extendable --- Add Selectors To It
+### Extend a Placeholder (Add Selectors to It)
 
-Use the at-rule `@simple-extend-addto` within a rule set to add that rule set's selector(s) to an extendable, which was defined via `@simple-extend-define`.
+Use the at-rule `@extend` within a rule set to add that rule set's selector(s) to a placeholder (which was defined via `@define-placeholder`).
+
+You can also use `@simple-extend-addto`, if that better fits your mind and situation.
 
 ```css
 .list-i-want-to-be-simple {
-  @simple-extend-addto simple-list;
+  @extend simple-list;
+  /* or @simple-extend-addto simple-list; */
   font-size: 40em;
 }
 ```
 
-Some `addto` guidelines to obey (violations should throw errors):
-- `addto` must *not* occur at the root level: only inside rule sets.
-- `addto` must *not* occur within `@media` statements. (The generated code almost certainly would not match your intention.)
-- The extendable must be defined *before* `@simple-extend-addto` can refer to it.
+And there are some `@extend` guidelines to obey (violations should throw errors):
+- `@extend` must *not* occur at the root level: only inside rule sets.
+- `@extend` must *not* occur within `@media` statements. (The generated code almost certainly would not match your intention.)
+- The placeholder must be defined *before* `@extend` can refer to it.
 
 ### Plug it in to PostCSS
 
@@ -95,8 +105,8 @@ var simpleExtend = require('postcss-simple-extend');
 var inputCss = fs.readFileSync('input.css', 'utf8');
 
 var outputCss = postcss()
-  .use(simpleExtend)
-  // or .use(simpleExtend())
+  .use(simpleExtend())
+  // or .use(simpleExtend
   .process(inputCss)
   .css;
 
@@ -104,4 +114,3 @@ console.log(outputCss);
 ```
 
 Or take advantage of [any of the myriad other ways to consume PostCSS](https://github.com/postcss/postcss#usage), and follow the plugin instructions they provide.
-

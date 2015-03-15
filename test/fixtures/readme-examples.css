@@ -1,13 +1,13 @@
-@simple-extend-define gigantic {
+@define-placeholder gigantic {
   font-size: 40em;
 }
 
 .foo {
-  @simple-extend-addto gigantic;
+  @extend gigantic;
   color: red;
 }
 
 .bar {
-  @simple-extend-addto gigantic;
+  @extend gigantic;
   color: orange;
 }

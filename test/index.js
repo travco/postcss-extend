@@ -30,6 +30,16 @@ function compareFixtures(t, name) {
   );
 }
 
+function runProcessor(css) {
+  return function() {
+    p(css);
+  };
+}
+
+function p(css) {
+  return postcss(simpleMixin).process(css).css;
+}
+
 test('basically works', function(t) {
   compareFixtures(t, 'basic');
   compareFixtures(t, 'readme-examples');
@@ -62,7 +72,7 @@ test('works when the addto rule set is otherwise empty', function(t) {
 });
 
 test('works when invoked with () or without', function(t) {
-  var someCss = '@simple-extend-define bar { background: pink; } .foo { @simple-extend-addto bar; }';
+  var someCss = '@define-placeholder bar { background: pink; } .foo { @extend bar; }';
 
   t.equal(
     postcss(simpleMixin).process(someCss).css,
@@ -72,33 +82,40 @@ test('works when invoked with () or without', function(t) {
   t.end();
 });
 
-function processCss(css) {
-  return function() {
-    return postcss(simpleMixin).process(css).css;
-  };
-}
+test('accepts alternative at-rules', function(t) {
+  var standard = p('@define-placeholder bar { background: pink; } .foo { @extend bar; }');
+  t.equal(
+    standard,
+    p('@simple-extend-define bar { background: pink; } .foo { @simple-extend-addto bar; }')
+  );
+  t.equal(
+    standard,
+    p('@define-extend bar { background: pink; } .foo { @simple-extend-addto bar; }')
+  );
+  t.end();
+});
 
 test('throws location error', function(t) {
 
-  var nonrootDefine = '.foo { @simple-extend-define bar { background: pink; } }';
+  var nonrootDefine = '.foo { @define-placeholder bar { background: pink; } }';
   t.throws(
-    processCss(nonrootDefine),
+    runProcessor(nonrootDefine),
     /must occur at the root level/,
     'throws an error if definition is in non-root node'
   );
 
   var mediaDefine = (
-    '@media (max-width: 700em) { @simple-extend-define foo { background: pink; } }'
+    '@media (max-width: 700em) { @define-placeholder foo { background: pink; } }'
   );
   t.throws(
-    processCss(mediaDefine),
+    runProcessor(mediaDefine),
     /must occur at the root level/,
     'throws an error if definition is in non-root node'
   );
 
-  var rootInclude = '@simple-extend-addto bar;';
+  var rootInclude = '@extend bar;';
   t.throws(
-    processCss(rootInclude),
+    runProcessor(rootInclude),
     /cannot occur at the root level/,
     'throws an error if include is in the root node'
   );
@@ -108,19 +125,19 @@ test('throws location error', function(t) {
 
 test('throws illegal nesting error', function(t) {
 
-  var defineWithRule = '@simple-extend-define foo { .bar { background: pink; } }';
+  var defineWithRule = '@define-placeholder foo { .bar { background: pink; } }';
   t.throws(
-    processCss(defineWithRule),
+    runProcessor(defineWithRule),
     /cannot contain statements/,
     'throws an error if definition contains a rule'
   );
 
   var defineWithMedia = (
-    '@simple-extend-define foo { @media (max-width: 400px) {' +
+    '@define-placeholder foo { @media (max-width: 400px) {' +
     '.bar { background: pink; } } }'
   );
   t.throws(
-    processCss(defineWithMedia),
+    runProcessor(defineWithMedia),
     /cannot contain statements/,
     'throws an error if definition contains a rule'
   );
@@ -130,20 +147,20 @@ test('throws illegal nesting error', function(t) {
 
 test('throws addto-without-definition error', function(t) {
 
-  var extendUndefined = '.bar { @simple-extend-addto foo; }';
+  var extendUndefined = '.bar { @extend foo; }';
   t.throws(
-    processCss(extendUndefined),
-    /is not \(yet\) defined/,
+    runProcessor(extendUndefined),
+    /has not \(yet\) defined/,
     'throws an error if addto refers to undefined extendable'
   );
 
   var extendNotYetDefined = (
-    '.bar { @simple-extend-addto foo; }' +
-    '@simple-extend-define { background: pink; }'
+    '.bar { @extend foo; }' +
+    '@define-placeholder { background: pink; }'
   );
   t.throws(
-    processCss(extendNotYetDefined),
-    /is not \(yet\) defined/,
+    runProcessor(extendNotYetDefined),
+    /has not \(yet\) defined/,
     'throws an error if addto refers to not-yet-defined extendable'
   );
 
@@ -152,11 +169,11 @@ test('throws addto-without-definition error', function(t) {
 
 test('throws addto-inside-media error', function(t) {
   var addInsideMedia = (
-    '@simple-extend-define foo { background: pink; }' +
-    '@media (max-width: 400px) { .bar { @simple-extend-addto foo; } }'
+    '@define-placeholder foo { background: pink; }' +
+    '@media (max-width: 400px) { .bar { @extend foo; } }'
   );
   t.throws(
-    processCss(addInsideMedia),
+    runProcessor(addInsideMedia),
     /cannot occur inside a @media statement/,
     'throws an error if addto is inside a media statement'
   );

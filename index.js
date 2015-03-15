@@ -5,15 +5,15 @@ var postcss = require('postcss');
 function simpleExtend() {
 
   return function(css) {
-    var DEFINING_AT_RULE = 'simple-extend-define';
-    var ADDING_AT_RULE = 'simple-extend-addto';
+    var definingAtRules = ['define-placeholder', 'define-extend', 'simple-extend-define'];
+    var addingAtRules = ['extend', 'simple-extend-addto'];
     var availableExtendables = {};
 
     css.eachAtRule(function(atRule) {
-      if (atRule.name === DEFINING_AT_RULE) {
+      if (definingAtRules.indexOf(atRule.name) !== -1) {
         checkDefinitionLocation(atRule);
         processDefinition(atRule);
-      } else if (atRule.name === ADDING_AT_RULE) {
+      } else if (addingAtRules.indexOf(atRule.name) !== -1) {
         checkAdditionLocation(atRule);
         processAddition(atRule);
       }
@@ -51,9 +51,7 @@ function simpleExtend() {
 
     function checkDefinitionNode(node) {
       if (node.type === 'rule' || node.type === 'atrule') {
-        throw node.error(
-          '@' + DEFINING_AT_RULE + ' cannot contain statements'
-        );
+        throw node.error(errMsg('Defining at-rules cannot contain statements'));
       }
       return node;
     }
@@ -61,27 +59,20 @@ function simpleExtend() {
     function getExtendable(extIdent, node) {
       var targetExt = availableExtendables[extIdent];
       if (!targetExt) {
-        throw node.error(
-          'Attempted to @' + ADDING_AT_RULE + ' `' + extIdent + '`, ' +
-          'which is not (yet) defined'
-        );
+        throw node.error(errMsg('`' + extIdent + '`, has not (yet) defined, so cannot be extended'));
       }
       return targetExt;
     }
 
     function checkDefinitionLocation(atRule) {
       if (atRule.parent.type !== 'root') {
-        throw atRule.error(
-          '@' + DEFINING_AT_RULE + ' must occur at the root level'
-        );
+        throw atRule.error(errMsg('Defining at-rules must occur at the root level'));
       }
     }
 
     function checkAdditionLocation(atRule) {
       if (atRule.parent.type === 'root') {
-        throw atRule.error(
-          '@' + ADDING_AT_RULE + ' cannot occur at the root level'
-        );
+        throw atRule.error(errMsg('Extending at-rules cannot occur at the root level'));
       }
 
       checkForMediaAncestor(atRule);
@@ -89,9 +80,7 @@ function simpleExtend() {
       function checkForMediaAncestor(node) {
         var parent = node.parent;
         if (parent.type === 'atrule' && parent.name === 'media') {
-          throw atRule.error(
-            '@' + ADDING_AT_RULE + ' cannot occur inside a @media statement'
-          );
+          throw atRule.error(errMsg('Extending at-rules cannot occur inside a @media statement'));
         }
         if (parent.type !== 'root') {
           checkForMediaAncestor(parent);
@@ -106,3 +95,7 @@ function simpleExtend() {
 simpleExtend.postcss = simpleExtend();
 
 module.exports = simpleExtend;
+
+function errMsg(str) {
+  return 'postcss-simple-extend: ' + str;
+}

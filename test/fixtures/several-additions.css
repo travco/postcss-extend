@@ -1,18 +1,18 @@
-@simple-extend-define foo {
+@define-placeholder foo {
   background: pink;
 }
 
 .bar {
-  @simple-extend-addto foo;
+  @extend foo;
   color: orange;
 }
 
 #baz {
-  @simple-extend-addto foo;
+  @extend foo;
   color: green;
 }
 
 div {
-  @simple-extend-addto foo;
+  @extend foo;
   color: yellow;
 }
