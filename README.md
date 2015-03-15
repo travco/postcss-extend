@@ -1,6 +1,4 @@
-[![Build Status](https://travis-ci.org/davidtheclark/postcss-simple-extend.svg?branch=master)](https://travis-ci.org/davidtheclark/postcss-simple-extend)
-
-# postcss-simple-extend
+# postcss-simple-extend [![Build Status](https://travis-ci.org/davidtheclark/postcss-simple-extend.svg?branch=master)](https://travis-ci.org/davidtheclark/postcss-simple-extend)
 
 **A [PostCSS](https://github.com/postcss/postcss) plugin that enables you to extend placeholder selectors in CSS.**
 
@@ -14,6 +12,12 @@ Many of the concerns people have with Sass's `@extend`, the problems that can ar
 **`postcss-simple-extend` is compatible with PostCSS v4+.**
 
 > **A Note on "mixins" & "extends"**: Mixins copy declarations from an abstract definition into a concrete rule set. Extends clone a concrete rule set's selector(s) and add them to an abstract placeholder selector. *This* plugin enables extends. If you would like to use mixins, as well — or instead — have a look at [`postcss-mixins`](https://github.com/postcss/postcss-mixins).
+
+## Installation
+
+```
+npm install postcss-simple-extend --save
+```
 
 ## Example Input-Output
 
