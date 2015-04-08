@@ -6,37 +6,37 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
 
   return function(css, result) {
     var definingAtRules = ['define-placeholder', 'define-extend', 'simple-extend-define'];
-    var addingAtRules = ['extend', 'simple-extend-addto'];
-    var availableExtendables = {};
+    var extending = ['extend', 'simple-extend-addto'];
+    var availablePlaceholders = {};
 
     css.eachAtRule(function(atRule) {
       if (definingAtRules.indexOf(atRule.name) !== -1) {
         if (isBadDefinitionLocation(atRule)) return;
         processDefinition(atRule);
-      } else if (addingAtRules.indexOf(atRule.name) !== -1) {
+      } else if (extending.indexOf(atRule.name) !== -1) {
         if (isBadAdditionLocation(atRule)) return;
         processAddition(atRule);
       }
     });
 
     function processDefinition(atRule) {
-      var extendableInstance = postcss.rule();
+      var definition = postcss.rule();
 
       // Manually copy styling properties (semicolon, whitespace)
       // to newly created and cloned nodes,
       // cf. https://github.com/postcss/postcss/issues/85
-      extendableInstance.semicolon = atRule.semicolon;
+      definition.semicolon = atRule.semicolon;
       atRule.nodes.forEach(function(node) {
-        if (isBadNestedDefinitionNode(node)) return;
+        if (isBadDefinitionNode(node)) return;
         var clone = node.clone();
         clone.before = node.before;
         clone.after = node.after;
         clone.between = node.between;
-        extendableInstance.append(clone);
+        definition.append(clone);
       });
 
-      atRule.parent.insertBefore(atRule, extendableInstance);
-      availableExtendables[atRule.params] = extendableInstance;
+      atRule.parent.insertBefore(atRule, definition);
+      availablePlaceholders[atRule.params] = definition;
       atRule.removeSelf();
     }
 
@@ -50,7 +50,7 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
       atRule.removeSelf();
     }
 
-    function isBadNestedDefinitionNode(node) {
+    function isBadDefinitionNode(node) {
       if (node.type === 'rule' || node.type === 'atrule') {
         result.warn('Defining at-rules cannot contain statements', { node: node });
         return true;
@@ -58,7 +58,7 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
     }
 
     function getExtendable(extIdent, node) {
-      var targetExt = availableExtendables[extIdent];
+      var targetExt = availablePlaceholders[extIdent];
       if (!targetExt) {
         result.warn('`' + extIdent + '`, has not (yet) defined, so cannot be extended', { node: node });
       }
