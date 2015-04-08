@@ -5,9 +5,10 @@
   "rules": {
     "radix": 2,
     "wrap-iife": 2,
-    "brace-style": [2, "1tbs", { "allowSingleLine": true }],
+    "brace-style": 0,
     "comma-style": 2,
     "consistent-this": [2, "_that"],
+    "curly": 0,
     "no-lonely-if": 2,
     "no-nested-ternary": 2,
     "no-use-before-define": [2, "nofunc"],

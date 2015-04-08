@@ -30,14 +30,16 @@ function compareFixtures(t, name) {
   );
 }
 
-function runProcessor(css) {
-  return function() {
-    p(css);
-  };
-}
-
 function p(css) {
   return postcss(simpleMixin).process(css).css;
+}
+
+function checkForWarnings(css, cb) {
+  postcss(simpleMixin).process(css).then(function(result) {
+    cb(result.warnings());
+  }).catch(function(err) {
+    console.log(err);
+  });
 }
 
 test('basically works', function(t) {
@@ -95,87 +97,108 @@ test('accepts alternative at-rules', function(t) {
   t.end();
 });
 
-test('throws location error', function(t) {
+test('registers location warning', function(t) {
 
-  var nonrootDefine = '.foo { @define-placeholder bar { background: pink; } }';
-  t.throws(
-    runProcessor(nonrootDefine),
-    /must occur at the root level/,
-    'throws an error if definition is in non-root node'
-  );
+  t.test('with non-root definition', function(st) {
+    var nonrootDefine = '.foo { @define-placeholder bar { background: pink; } }';
+    checkForWarnings(nonrootDefine, function(warnings) {
+      st.equal(warnings.length, 1, 'registers a warning');
+      st.ok(/must occur at the root level/.test(warnings[0].text),
+        'registers the right warning');
+      st.end();
+    });
+  });
 
-  var mediaDefine = (
-    '@media (max-width: 700em) { @define-placeholder foo { background: pink; } }'
-  );
-  t.throws(
-    runProcessor(mediaDefine),
-    /must occur at the root level/,
-    'throws an error if definition is in non-root node'
-  );
+  t.test('with definition inside media query', function(st) {
+    var mediaDefine = (
+      '@media (max-width: 700em) { @define-placeholder foo { background: pink; } }'
+    );
+    checkForWarnings(mediaDefine, function(warnings) {
+      st.equal(warnings.length, 1, 'registers a warning');
+      st.ok(/must occur at the root level/.test(warnings[0].text),
+        'registers the right warning');
+      st.end();
+    });
+  });
 
-  var rootInclude = '@extend bar;';
-  t.throws(
-    runProcessor(rootInclude),
-    /cannot occur at the root level/,
-    'throws an error if include is in the root node'
-  );
-
-  t.end();
-});
-
-test('throws illegal nesting error', function(t) {
-
-  var defineWithRule = '@define-placeholder foo { .bar { background: pink; } }';
-  t.throws(
-    runProcessor(defineWithRule),
-    /cannot contain statements/,
-    'throws an error if definition contains a rule'
-  );
-
-  var defineWithMedia = (
-    '@define-placeholder foo { @media (max-width: 400px) {' +
-    '.bar { background: pink; } } }'
-  );
-  t.throws(
-    runProcessor(defineWithMedia),
-    /cannot contain statements/,
-    'throws an error if definition contains a rule'
-  );
+  t.test('with extension in the root node', function(st) {
+    var rootExtend = '@extend bar;';
+    checkForWarnings(rootExtend, function(warnings) {
+      st.equal(warnings.length, 1, 'registers a warning');
+      st.ok(/cannot occur at the root level/.test(warnings[0].text),
+        'registers the right warning');
+      st.end();
+    });
+  });
 
   t.end();
 });
 
-test('throws addto-without-definition error', function(t) {
+test('register illegal nesting warning', function(t) {
 
-  var extendUndefined = '.bar { @extend foo; }';
-  t.throws(
-    runProcessor(extendUndefined),
-    /has not \(yet\) defined/,
-    'throws an error if addto refers to undefined extendable'
-  );
+  t.test('with a nested rule', function(st) {
+    var defineWithRule = '@define-placeholder foo { .bar { background: pink; } }';
+    checkForWarnings(defineWithRule, function(warnings) {
+      st.equal(warnings.length, 1, 'registers a warning');
+      st.ok(/cannot contain statements/.test(warnings[0].text),
+        'registers the right warning');
+      st.end();
+    });
+  });
 
-  var extendNotYetDefined = (
-    '.bar { @extend foo; }' +
-    '@define-placeholder { background: pink; }'
-  );
-  t.throws(
-    runProcessor(extendNotYetDefined),
-    /has not \(yet\) defined/,
-    'throws an error if addto refers to not-yet-defined extendable'
-  );
+  t.test('with a nested media query', function(st) {
+    var defineWithMedia = (
+      '@define-placeholder foo { @media (max-width: 400px) {' +
+      '.bar { background: pink; } } }'
+    );
+    checkForWarnings(defineWithMedia, function(warnings) {
+      st.equal(warnings.length, 1, 'registers a warning');
+      st.ok(/cannot contain statements/.test(warnings[0].text),
+        'registers the right warning');
+      st.end();
+    });
+  });
 
   t.end();
 });
 
-test('throws addto-inside-media error', function(t) {
+test('registers extend-without-definition warning', function(t) {
+
+  t.test('with an undefined placeholder', function(st) {
+    var extendUndefined = '.bar { @extend foo; }';
+    checkForWarnings(extendUndefined, function(warnings) {
+      st.equal(warnings.length, 1, 'registers a warning');
+      st.ok(/has not \(yet\) defined/.test(warnings[0].text),
+        'registers the right warning');
+      st.end();
+    });
+  });
+
+  t.test('with a not-yet-defined placeholder', function(st) {
+    var extendNotYetDefined = (
+      '.bar { @extend foo; }' +
+      '@define-placeholder { background: pink; }'
+    );
+    checkForWarnings(extendNotYetDefined, function(warnings) {
+      st.equal(warnings.length, 1, 'registers a warning');
+      st.ok(/has not \(yet\) defined/.test(warnings[0].text),
+        'registers the right warning');
+      st.end();
+    });
+  });
+
+  t.end();
+});
+
+test('registers extend-inside-media warning', function(t) {
   var addInsideMedia = (
     '@define-placeholder foo { background: pink; }' +
     '@media (max-width: 400px) { .bar { @extend foo; } }'
   );
-  t.throws(
-    runProcessor(addInsideMedia),
-    /cannot occur inside a @media statement/,
-    'throws an error if addto is inside a media statement'
-  );
-  t.end();
+  checkForWarnings(addInsideMedia, function(warnings) {
+    t.equal(warnings.length, 1, 'registers a warning');
+    t.ok(/cannot occur inside a @media statement/.test(warnings[0].text),
+      'registers the right warning');
+    t.end();
+  });
 });
