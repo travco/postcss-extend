@@ -9,7 +9,7 @@ Unlike Sass's `@extend`, however, *this plugin does not enable you to extend rea
 That key difference makes this plugin *much* more simple, and therefore much less dangerous.
 Many of the concerns people have with Sass's `@extend`, the problems that can arise from its use, simply do not apply to this, more *simple* version. Smart Sass users often recommend to only ever `@extend` placeholders (cf. [Harry Robert]((http://csswizardry.com/2014/01/extending-silent-classes-in-sass/) and [Hugo Giraudel](http://sass-guidelin.es/#extend)): *with this plugin, that recommendation is enforced*.
 
-**`postcss-simple-extend` is compatible with PostCSS v4+.**
+**`postcss-simple-extend` is compatible with PostCSS v4.1+.**
 
 > **A Note on "mixins" & "extends"**: Mixins copy declarations from an abstract definition into a concrete rule set. Extends clone a concrete rule set's selector(s) and add them to an abstract placeholder selector. *This* plugin enables extends. If you would like to use mixins, as well — or instead — have a look at [`postcss-mixins`](https://github.com/postcss/postcss-mixins).
 
@@ -74,7 +74,7 @@ You can also use `@define-extend` or `@simple-extend-define`, if either of those
 
 `@define-placeholder` at-rules, and the placeholder names (e.g. `simple-list`, above), will be removed entirely from the generated CSS, replaced by the selectors you've added via `@extend` (see example above).
 
-There are some defining guidelines to obey (violations should throw errors):
+There are some defining guidelines to obey (violations should log warnings):
 - Definitions must occur at the root level (i.e. not inside statements, such as rule sets or `@media` statements).
 - Definitions should only contain declarations and comments: no statements.
 
@@ -92,7 +92,7 @@ You can also use `@simple-extend-addto`, if that better fits your mind and situa
 }
 ```
 
-And there are some `@extend` guidelines to obey (violations should throw errors):
+And there are some `@extend` guidelines to obey (violations should log warnings):
 - `@extend` must *not* occur at the root level: only inside rule sets.
 - `@extend` must *not* occur within `@media` statements. (The generated code almost certainly would not match your intention.)
 - The placeholder must be defined *before* `@extend` can refer to it.
