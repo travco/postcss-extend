@@ -6,7 +6,7 @@
     "url": "http://davidtheclark.com"
   },
   "license": "MIT",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Simple extends for PostCSS",
   "homepage": "https://github.com/davidtheclark/postcss-simple-extend",
   "repository": {

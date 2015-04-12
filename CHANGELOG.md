@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.3.1
+- Ensure that unused defining at-rules and erroneous extending at-rules are removed from generated CSS.
+
 ## v0.3.0
 - Upgrade to PostCSS ^0.4.1, using its async and warnings features.
 
