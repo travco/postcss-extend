@@ -6,20 +6,30 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
 
   return function(css, result) {
     var definingAtRules = ['define-placeholder', 'define-extend', 'simple-extend-define'];
-    var extending = ['extend', 'simple-extend-addto'];
+    var extendingAtRules = ['extend', 'simple-extend-addto'];
     var availablePlaceholders = {};
 
     css.eachAtRule(function(atRule) {
       if (definingAtRules.indexOf(atRule.name) !== -1) {
-        if (isBadDefinitionLocation(atRule)) return;
         processDefinition(atRule);
-      } else if (extending.indexOf(atRule.name) !== -1) {
-        if (isBadAdditionLocation(atRule)) return;
-        processAddition(atRule);
+      } else if (extendingAtRules.indexOf(atRule.name) !== -1) {
+        processExtension(atRule);
       }
     });
 
+    // Remove placeholders that were never used
+    for (var p in availablePlaceholders) {
+      if (availablePlaceholders.hasOwnProperty(p) && !availablePlaceholders[p].selector) {
+        availablePlaceholders[p].removeSelf();
+      }
+    }
+
     function processDefinition(atRule) {
+      if (isBadDefinitionLocation(atRule)) {
+        atRule.removeSelf();
+        return;
+      }
+
       var definition = postcss.rule();
 
       // Manually copy styling properties (semicolon, whitespace)
@@ -40,13 +50,19 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
       atRule.removeSelf();
     }
 
-    function processAddition(atRule) {
+    function processExtension(atRule) {
+      if (isBadExtensionLocation(atRule)) {
+        atRule.removeSelf();
+        return;
+      }
+
       var targetExt = getExtendable(atRule.params, atRule);
-      if (!targetExt) return;
       var selectorToAdd = atRule.parent.selector;
-      targetExt.selector = (targetExt.selector)
-        ? targetExt.selector + ',\n' + selectorToAdd
-        : selectorToAdd;
+      if (targetExt) {
+        targetExt.selector = (targetExt.selector)
+          ? targetExt.selector + ',\n' + selectorToAdd
+          : selectorToAdd;
+      }
       atRule.removeSelf();
     }
 
@@ -72,7 +88,7 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
       }
     }
 
-    function isBadAdditionLocation(atRule) {
+    function isBadExtensionLocation(atRule) {
       if (atRule.parent.type === 'root') {
         result.warn('Extending at-rules cannot occur at the root level', { node: atRule });
         return true;
@@ -87,7 +103,7 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
           return true;
         }
         if (parent.type !== 'root') {
-          hasMediaAncestor(parent);
+          return hasMediaAncestor(parent);
         }
       }
     }
