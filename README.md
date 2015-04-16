@@ -19,6 +19,8 @@ Many of the concerns people have with Sass's `@extend`, the problems that can ar
 npm install postcss-simple-extend --save
 ```
 
+**Public Service Announcement**: Because of [an issue with `postcss-nested`](https://github.com/postcss/postcss-nested/issues/11), if you are trying to use *both* `postcss-nested` and this plugin, you need to *use this plugin first*.
+
 ## Example Input-Output
 
 Input:
