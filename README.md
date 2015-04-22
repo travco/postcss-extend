@@ -7,7 +7,7 @@ Use this plugin to define a rule set with an abstract, extendable selector — a
 The functionality should mirror Sass's `@extend` with `%` placeholders (a.k.a. "silent classes").
 Unlike Sass's `@extend`, however, *this plugin does not enable you to extend real selectors*: i.e. you cannot `@extend .classname` or `@extend ul > li + li > span a`.
 That key difference makes this plugin *much* more simple, and therefore much less dangerous.
-Many of the concerns people have with Sass's `@extend`, the problems that can arise from its use, simply do not apply to this, more *simple* version. Smart Sass users often recommend to only ever `@extend` placeholders (cf. [Harry Robert]((http://csswizardry.com/2014/01/extending-silent-classes-in-sass/) and [Hugo Giraudel](http://sass-guidelin.es/#extend)): *with this plugin, that recommendation is enforced*.
+Many of the concerns people have with Sass's `@extend`, the problems that can arise from its use, simply do not apply to this, more *simple* version. Smart Sass users often recommend to only ever `@extend` placeholders (cf. [Harry Robert](http://csswizardry.com/2014/01/extending-silent-classes-in-sass/) and [Hugo Giraudel](http://sass-guidelin.es/#extend)): *with this plugin, that recommendation is enforced*.
 
 **`postcss-simple-extend` is compatible with PostCSS v4.1+.**
 
