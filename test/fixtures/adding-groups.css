@@ -1,16 +1,29 @@
-@define-placeholder foo {
+@define-placeholder soylent,
+@define-placeholder kelty,
+%whisper {
+  background: wink;
+}
+
+.foo, .foobar {
   background: pink;
+  @extend soylent;
 }
 
 .bar,
 #baz,
 div {
-  @extend foo;
+  @extend %whisper;
   color: orange;
 }
 
 [href='#'],
 li:first-child {
-  @extend foo;
+  @extend kelty;
   color: black;
+}
+
+#dbag {
+  @extend .bar;
+  @extend #baz;
+  color: brown;
 }

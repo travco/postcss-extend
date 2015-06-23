@@ -30,7 +30,7 @@
   "main": "index.js",
   "scripts": {
     "lint": "eslint index.js test/index.js",
-    "test": "npm run lint && tape test"
+    "test": "rm test/errout.txt && npm run lint && tape test"
   },
   "dependencies": {
     "postcss": "^4.1.0"
