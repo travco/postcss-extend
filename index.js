@@ -25,9 +25,9 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
       //Strip all @define-placeholders and save slug-selectors into tgtSaved
       for (var i = tgtSaved.length - 1; i >= 0; i--) {
         if (tgtSaved[i].substring(0, 20) === '@define-placeholder ') {
-          /*DEBUG*/ appendout('./test/errout.txt', '\nn[' + i + ']String = ' + tgtSaved[i] + ' Substring 0-20 = \'' + tgtSaved[i].substring(0, 20) + '\'');
+          /*DEBUG*/ appendout('./test/debugout.txt', '\nn[' + i + ']String = ' + tgtSaved[i] + ' Substring 0-20 = \'' + tgtSaved[i].substring(0, 20) + '\'');
           tgtSaved[i] = tgtSaved[i].substring(20, (tgtSaved[i].length));
-          /*DEBUG*/ appendout('./test/errout.txt', '\nresString = \'' + tgtSaved[i] + '\'');
+          /*DEBUG*/ appendout('./test/debugout.txt', '\nresString = \'' + tgtSaved[i] + '\'');
         }
       }
       var tgtAccumulate = [];
@@ -42,16 +42,16 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
             tgtAccumulate.push(tgtSaved[n]);
           }
         } /*DEBUG*/ else {
-          /*DEBUG*/ appendout('./test/errout.txt', '\nSifted out placeholder/silent ' + tgtSaved[n]);
+          /*DEBUG*/ appendout('./test/debugout.txt', '\nSifted out placeholder/silent ' + tgtSaved[n]);
         /*DEBUG*/ }
 
         // Operate on normal extendables
         if (requestedExtends[tgtSaved[n]] && targetRule.parent.type === 'root') {
-          /*DEBUG*/ appendout('./test/errout.txt', '\nrequestedExtends[' + tgtSaved[n] + '] : ' + requestedExtends[tgtSaved[n]]);
+          /*DEBUG*/ appendout('./test/debugout.txt', '\nrequestedExtends[' + tgtSaved[n] + '] : ' + requestedExtends[tgtSaved[n]]);
 
           tgtAccumulate.push.apply(tgtAccumulate, requestedExtends[tgtSaved[n]]);
-          /*DEBUG*/ appendout('./test/errout.txt', '\nCombined selectors :\n' + tgtAccumulate);
-          /*DEBUG*/ appendout('./test/errout.txt', '\nSaving fufilled [' + tgtSaved[n] + ']');
+          /*DEBUG*/ appendout('./test/debugout.txt', '\nCombined selectors :\n' + tgtAccumulate);
+          /*DEBUG*/ appendout('./test/debugout.txt', '\nSaving fufilled [' + tgtSaved[n] + ']');
           if (!fufilledExtends) {
             fufilledExtends = [ (tgtSaved[n]) ];
           } else {
@@ -64,13 +64,13 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
           var tgtBase = tgtSaved[n].substring(0, tgtSaved[n].indexOf(':'));
           var tgtPsuedo = tgtSaved[n].substring(tgtSaved[n].indexOf(':'), tgtSaved[n].length);
           var requestedExtArr = requestedExtends[tgtBase].toString().split(',');
-          /*DEBUG*/ appendout('./test/errout.txt', '\nrequestedExtends[' + tgtSaved[n].substring(0, tgtSaved[n].indexOf(':')) + '] :\n' + tgtBase);
+          /*DEBUG*/ appendout('./test/debugout.txt', '\nrequestedExtends[' + tgtSaved[n].substring(0, tgtSaved[n].indexOf(':')) + '] :\n' + tgtBase);
 
           for (var p = requestedExtArr.length - 1; p >= 0; p--) {
             tgtAccumulate.push(requestedExtArr[p] + tgtPsuedo);
-            /*DEBUG*/ appendout('./test/errout.txt', '\nAdded Psuedo : ' + requestedExtArr[p] + tgtPsuedo);
+            /*DEBUG*/ appendout('./test/debugout.txt', '\nAdded Psuedo : ' + requestedExtArr[p] + tgtPsuedo);
           }
-          /*DEBUG*/ appendout('./test/errout.txt', '\nSaving fufilled [' + tgtSaved[n] + ']');
+          /*DEBUG*/ appendout('./test/debugout.txt', '\nSaving fufilled [' + tgtSaved[n] + ']');
           if (!fufilledExtends) {
             fufilledExtends = [ (tgtSaved[n]) ];
           } else {
@@ -78,10 +78,10 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
           }
         }
       }
-      /*DEBUG*/ appendout('./test/errout.txt', '\nStart uniqreq2 :\n' + tgtAccumulate);
+      /*DEBUG*/ appendout('./test/debugout.txt', '\nStart uniqreq2 :\n' + tgtAccumulate);
       //Kill off duplicate selectors
       tgtAccumulate = uniqreq(tgtAccumulate).toString().replace(/,/g, ',\n');
-      /*DEBUG*/ appendout('./test/errout.txt', '\nPost uniqreq2 :\n' + tgtAccumulate);
+      /*DEBUG*/ appendout('./test/debugout.txt', '\nPost uniqreq2 :\n' + tgtAccumulate);
       targetRule.selector = tgtAccumulate;
     });
 
@@ -89,7 +89,7 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
       if (requestedExtends.hasOwnProperty(selector) &&
           fufilledExtends.indexOf(selector) === -1) {
         result.warn('`' + selector + '`, has not been defined, so cannot be extended');
-        /*DEBUG*/ appendout('./test/errout.txt', '\n' + selector + ' has not been defined!!!');
+        /*DEBUG*/ appendout('./test/debugout.txt', '\n' + selector + ' has not been defined!!!');
       }
     }
 
@@ -119,16 +119,33 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
 
     function processExtension(atRule) {
       if (!isBadExtensionLocation(atRule)) {
-        var selectorsToAdd = atRule.parent.selectors;
-        //assume find-behavior for extend if no Placeholder is availible
-        /*DEBUG*/ appendout('./test/errout.txt', '\nRunning find-behavior');
-        if (!requestedExtends[atRule.params]) {
-          requestedExtends[atRule.params] = selectorsToAdd;
-        } else if (requestedExtends[atRule.params].indexOf(selectorsToAdd) === -1) {
-          requestedExtends[atRule.params].push.apply(requestedExtends[atRule.params], selectorsToAdd);
+        if (!hasMediaAncestor(atRule)) {
+          //Work by adding our rule's selectors to be (later) added to the extended rule
+          var selectorsToAdd = atRule.parent.selectors;
+          /*DEBUG*/ appendout('./test/debugout.txt', '\nRunning find-behavior');
+          if (!requestedExtends[atRule.params]) {
+            requestedExtends[atRule.params] = selectorsToAdd;
+          } else {
+            requestedExtends[atRule.params].push.apply(requestedExtends[atRule.params], selectorsToAdd);
+          }
+          /*DEBUG*/ appendout('./test/debugout.txt', '\nrequestExt: ' + atRule.params + ' : ' + selectorsToAdd + '\ncreated: ' + requestedExtends[atRule.params]);
+        } else {
+          //Work by copying the declarations of our target rule
+          /*DEBUG*/ appendout('./test/debugout.txt', '\nAttempting to fetch declarations for ' + atRule.params + '...');
+          css.eachRule(function(targetRule) {
+            if (targetRule.selectors.indexOf(atRule.params) !== -1) {
+              /*DEBUG*/ appendout('./test/debugout.txt', '\n... targetRule :\n' + targetRule);
+              targetRule.nodes.forEach(function(node) {
+                if (isBadDefinitionNode(node)) return;
+                var clone = node.clone();
+                clone.before = node.before + '\t';
+                clone.after = node.after;
+                clone.between = node.between;
+                atRule.parent.append(clone);
+              });
+            }
+          });
         }
-        /*DEBUG*/ appendout('./test/errout.txt', '\nrequestExt: ' + atRule.params + ' : ' +
-          selectorsToAdd + '\ncreated: ' + requestedExtends[atRule.params]);
       }
       if (!atRule.parent.nodes.length || atRule.parent.nodes.length === 1) {
         atRule.parent.removeSelf();
@@ -156,18 +173,15 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
         result.warn('Extending at-rules cannot occur at the root level', { node: atRule });
         return true;
       }
+    }
 
-      return hasMediaAncestor(atRule);
-
-      function hasMediaAncestor(node) {
-        var parent = node.parent;
-        if (parent.type === 'atrule' && parent.name === 'media') {
-          result.warn('Extending at-rules cannot occur inside a @media statement', { node: node });
-          return true;
-        }
-        if (parent.type !== 'root') {
-          return hasMediaAncestor(parent);
-        }
+    function hasMediaAncestor(node) {
+      var parent = node.parent;
+      if (parent.type === 'atrule' && parent.name === 'media') {
+        return true;
+      }
+      if (parent.type !== 'root') {
+        return hasMediaAncestor(parent);
       }
     }
 

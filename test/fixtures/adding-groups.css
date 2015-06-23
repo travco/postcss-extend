@@ -1,5 +1,13 @@
 .potato {
   color: white;
+  outline: brown;
+}
+
+@media (width > 600px) {
+  .spud {
+    @extend .potato;
+    font-weight: bold;
+  }
 }
 
 .potato:first-child {
@@ -14,6 +22,10 @@
   @extend .potato;
 }
 
+#dbag {
+  @extend .spud;
+}
+
 [href='#'],
 li:first-child {
   color: black;
@@ -23,6 +35,5 @@ li:first-child {
 #baz,
 div {
   @extend li:first-child;
-  color: orange;
 }
 
