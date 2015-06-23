@@ -59,22 +59,16 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
           }
         }
         //Operate on psuedo-elements of extendables (thus extending them)
-        /*DEBUG*/ appendout('./test/errout.txt', '\nChecking for \'' + (tgtSaved[n].substring(0, tgtSaved[n].indexOf(':'))) + '\' in requestedExtends');
         if (tgtSaved[n].indexOf(':') !== -1 && requestedExtends[ tgtSaved[n].substring(0, tgtSaved[n].indexOf(':')) ] && targetRule.parent.type === 'root') {
 
           var tgtBase = tgtSaved[n].substring(0, tgtSaved[n].indexOf(':'));
           var tgtPsuedo = tgtSaved[n].substring(tgtSaved[n].indexOf(':'), tgtSaved[n].length);
-          var numPsuedoRequested = requestedExtends[tgtBase].length;
+          var requestedExtArr = requestedExtends[tgtBase].toString().split(',');
           /*DEBUG*/ appendout('./test/errout.txt', '\nrequestedExtends[' + tgtSaved[n].substring(0, tgtSaved[n].indexOf(':')) + '] :\n' + tgtBase);
 
-          for (var p = numPsuedoRequested - 1; p >= 0; p--) {
-            if (numPsuedoRequested) {
-              tgtAccumulate.push(requestedExtends[tgtBase] + tgtPsuedo);
-              /*DEBUG*/ appendout('./test/errout.txt', '\nAdded Psuedo : ' + requestedExtends[tgtSaved[n]] + tgtPsuedo);
-            } else {
-              tgtAccumulate.push(requestedExtends[tgtBase][p] + tgtPsuedo);
-              /*DEBUG*/ appendout('./test/errout.txt', '\nAdded Psuedo : ' + requestedExtends[tgtSaved[n]][p] + tgtPsuedo);
-            }
+          for (var p = requestedExtArr.length - 1; p >= 0; p--) {
+            tgtAccumulate.push(requestedExtArr[p] + tgtPsuedo);
+            /*DEBUG*/ appendout('./test/errout.txt', '\nAdded Psuedo : ' + requestedExtArr[p] + tgtPsuedo);
           }
           /*DEBUG*/ appendout('./test/errout.txt', '\nSaving fufilled [' + tgtSaved[n] + ']');
           if (!fufilledExtends) {

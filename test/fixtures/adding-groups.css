@@ -6,18 +6,23 @@
   background: brown;
 }
 
+.potato::after li {
+  background: pink;
+}
+
 #superfun {
   @extend .potato;
+}
+
+[href='#'],
+li:first-child {
+  color: black;
 }
 
 .bar,
 #baz,
 div {
+  @extend li:first-child;
   color: orange;
 }
 
-[href='#'],
-li:first-child {
-  @extend .bar;
-  color: black;
-}
