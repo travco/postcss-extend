@@ -1,29 +1,23 @@
-@define-placeholder soylent,
-@define-placeholder kelty,
-%whisper {
-  background: wink;
+.potato {
+  color: white;
 }
 
-.foo, .foobar {
-  background: pink;
-  @extend soylent;
+.potato:first-child {
+  background: brown;
+}
+
+#superfun {
+  @extend .potato;
 }
 
 .bar,
 #baz,
 div {
-  @extend %whisper;
   color: orange;
 }
 
 [href='#'],
 li:first-child {
-  @extend kelty;
-  color: black;
-}
-
-#dbag {
   @extend .bar;
-  @extend #baz;
-  color: brown;
+  color: black;
 }

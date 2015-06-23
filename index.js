@@ -42,14 +42,40 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
             tgtAccumulate.push(tgtSaved[n]);
           }
         } /*DEBUG*/ else {
-          /*DEBUG*/ appendout('./test/errout.txt', '\nSifted out placeholder ' + tgtSaved[n]);
+          /*DEBUG*/ appendout('./test/errout.txt', '\nSifted out placeholder/silent ' + tgtSaved[n]);
         /*DEBUG*/ }
 
+        // Operate on normal extendables
         if (requestedExtends[tgtSaved[n]] && targetRule.parent.type === 'root') {
           /*DEBUG*/ appendout('./test/errout.txt', '\nrequestedExtends[' + tgtSaved[n] + '] : ' + requestedExtends[tgtSaved[n]]);
 
           tgtAccumulate.push.apply(tgtAccumulate, requestedExtends[tgtSaved[n]]);
-          /*DEBUG*/ appendout('./test/errout.txt', '\nPre uniqreq2 :\n' + tgtAccumulate);
+          /*DEBUG*/ appendout('./test/errout.txt', '\nCombined selectors :\n' + tgtAccumulate);
+          /*DEBUG*/ appendout('./test/errout.txt', '\nSaving fufilled [' + tgtSaved[n] + ']');
+          if (!fufilledExtends) {
+            fufilledExtends = [ (tgtSaved[n]) ];
+          } else {
+            fufilledExtends.push(tgtSaved[n]);
+          }
+        }
+        //Operate on psuedo-elements of extendables (thus extending them)
+        /*DEBUG*/ appendout('./test/errout.txt', '\nChecking for \'' + (tgtSaved[n].substring(0, tgtSaved[n].indexOf(':'))) + '\' in requestedExtends');
+        if (tgtSaved[n].indexOf(':') !== -1 && requestedExtends[ tgtSaved[n].substring(0, tgtSaved[n].indexOf(':')) ] && targetRule.parent.type === 'root') {
+
+          var tgtBase = tgtSaved[n].substring(0, tgtSaved[n].indexOf(':'));
+          var tgtPsuedo = tgtSaved[n].substring(tgtSaved[n].indexOf(':'), tgtSaved[n].length);
+          var numPsuedoRequested = requestedExtends[tgtBase].length;
+          /*DEBUG*/ appendout('./test/errout.txt', '\nrequestedExtends[' + tgtSaved[n].substring(0, tgtSaved[n].indexOf(':')) + '] :\n' + tgtBase);
+
+          for (var p = numPsuedoRequested - 1; p >= 0; p--) {
+            if (numPsuedoRequested) {
+              tgtAccumulate.push(requestedExtends[tgtBase] + tgtPsuedo);
+              /*DEBUG*/ appendout('./test/errout.txt', '\nAdded Psuedo : ' + requestedExtends[tgtSaved[n]] + tgtPsuedo);
+            } else {
+              tgtAccumulate.push(requestedExtends[tgtBase][p] + tgtPsuedo);
+              /*DEBUG*/ appendout('./test/errout.txt', '\nAdded Psuedo : ' + requestedExtends[tgtSaved[n]][p] + tgtPsuedo);
+            }
+          }
           /*DEBUG*/ appendout('./test/errout.txt', '\nSaving fufilled [' + tgtSaved[n] + ']');
           if (!fufilledExtends) {
             fufilledExtends = [ (tgtSaved[n]) ];
