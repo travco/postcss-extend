@@ -7,10 +7,20 @@
   .spud {
     @extend .potato;
     font-weight: bold;
+    color: red;
+  }
+  .spud:first-child {
+    background: purple;
+  }
+  .sputnik {
+    @extend .spud;
+    font-weight: normal;
+    font-style: italic;
   }
 }
 
-.potato:first-child {
+.potato:first-child,
+.potato:last-child {
   background: brown;
 }
 

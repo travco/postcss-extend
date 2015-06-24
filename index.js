@@ -20,8 +20,8 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
     });
 
     // Act on requestedExtends
-    css.eachRule(function(targetRule) {
-      var tgtSaved = targetRule.selectors;
+    css.eachRule(function(targetNode) {
+      var tgtSaved = targetNode.selectors;
       //Strip all @define-placeholders and save slug-selectors into tgtSaved
       for (var i = tgtSaved.length - 1; i >= 0; i--) {
         if (tgtSaved[i].substring(0, 20) === '@define-placeholder ') {
@@ -34,7 +34,7 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
       for (var n = tgtSaved.length - 1; n >= 0; n--) {
 
         //Selectively disclude slugs from final accumulation for placeholders and silent classes
-        if (targetRule.selectors.indexOf('@define-placeholder ' + tgtSaved[n]) === -1 &&
+        if (targetNode.selectors.indexOf('@define-placeholder ' + tgtSaved[n]) === -1 &&
           tgtSaved[n].charAt(0) !== '%') {
           if (!tgtAccumulate) {
             tgtAccumulate = [ (tgtSaved[n]) ];
@@ -46,7 +46,7 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
         /*DEBUG*/ }
 
         // Operate on normal extendables
-        if (requestedExtends[tgtSaved[n]] && targetRule.parent.type === 'root') {
+        if (requestedExtends[tgtSaved[n]] && targetNode.parent.type === 'root') {
           /*DEBUG*/ appendout('./test/debugout.txt', '\nrequestedExtends[' + tgtSaved[n] + '] : ' + requestedExtends[tgtSaved[n]]);
 
           tgtAccumulate.push.apply(tgtAccumulate, requestedExtends[tgtSaved[n]]);
@@ -59,7 +59,7 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
           }
         }
         //Operate on psuedo-elements of extendables (thus extending them)
-        if (tgtSaved[n].indexOf(':') !== -1 && requestedExtends[ tgtSaved[n].substring(0, tgtSaved[n].indexOf(':')) ] && targetRule.parent.type === 'root') {
+        if (tgtSaved[n].indexOf(':') !== -1 && requestedExtends[ tgtSaved[n].substring(0, tgtSaved[n].indexOf(':')) ] && targetNode.parent.type === 'root') {
 
           var tgtBase = tgtSaved[n].substring(0, tgtSaved[n].indexOf(':'));
           var tgtPsuedo = tgtSaved[n].substring(tgtSaved[n].indexOf(':'), tgtSaved[n].length);
@@ -82,7 +82,7 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
       //Kill off duplicate selectors
       tgtAccumulate = uniqreq(tgtAccumulate).toString().replace(/,/g, ',\n');
       /*DEBUG*/ appendout('./test/debugout.txt', '\nPost uniqreq2 :\n' + tgtAccumulate);
-      targetRule.selector = tgtAccumulate;
+      targetNode.selector = tgtAccumulate;
     });
 
     for (var selector in requestedExtends) {
@@ -132,19 +132,52 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
         } else {
           //Work by copying the declarations of our target rule
           /*DEBUG*/ appendout('./test/debugout.txt', '\nAttempting to fetch declarations for ' + atRule.params + '...');
-          css.eachRule(function(targetRule) {
-            if (targetRule.selectors.indexOf(atRule.params) !== -1) {
-              /*DEBUG*/ appendout('./test/debugout.txt', '\n... targetRule :\n' + targetRule);
-              targetRule.nodes.forEach(function(node) {
-                if (isBadDefinitionNode(node)) return;
-                var clone = node.clone();
-                clone.before = node.before + '\t';
-                clone.after = node.after;
-                clone.between = node.between;
-                atRule.parent.append(clone);
-              });
+          var psuedoFound;
+          var psuedoTarget = {
+            node: {},
+            bool: false
+          };
+          css.eachRule(function(targetNode) {
+            if (targetNode.selectors.indexOf(atRule.params) !== -1) {
+              /*DEBUG*/ appendout('./test/debugout.txt', '\n... targetNode :\n' + targetNode);
+              safeCopyDeclarations(targetNode, atRule.parent);
+            }
+            //Pull from psuedo-elements of target nodes (thus extending them)
+            psuedoFound = false;
+            psuedoTarget.bool = false;
+
+            for (var n = targetNode.selectors.length - 1; n >= 0 && !psuedoFound; n--) {
+              var tgtBase = targetNode.selectors[n].substring(0, targetNode.selectors[n].indexOf(':'));
+              var tgtPsuedo = targetNode.selectors[n].substring(targetNode.selectors[n].indexOf(':'), targetNode.selectors[n].length);
+              if (targetNode.selectors[n].indexOf(':') !== -1 && tgtBase === atRule.params && targetNode.parent.type === 'root') {
+                psuedoFound = true;
+                //check for prexisting psuedo classes before making one
+                psuedoTarget = findBrotherPsuedoClass(atRule.parent, tgtPsuedo);
+                if (psuedoTarget.bool) {
+                  //utilize existing psuedoclass for extention
+                  /*DEBUG*/ appendout('./test/debugout.txt', '\nUtilizing existing psuedoclass for extention:\n' + psuedoTarget);
+                  safeCopyDeclarations(targetNode, psuedoTarget.node);
+                } else {
+                  //create additional nodes below existing for each psuedoInstance
+                  /*DEBUG*/ appendout('./test/debugout.txt', '\nUtilizing new psuedoclass for extention, as nothing matches: \n' + atRule.parent.selector + ' psuedo-' + tgtPsuedo);
+                  var newNode = postcss.rule();
+                  newNode.semicolon = atRule.semicolon;
+                  safeCopyDeclarations(targetNode, newNode);
+                  var selectorRetainer;
+                  for (var i = atRule.parent.selectors.length - 1; i >= 0; i--) {
+                    if (selectorRetainer) {
+                      selectorRetainer = newNode.selector;
+                      newNode.selector = selectorRetainer + ',\n' + atRule.parent.selectors[i] + tgtPsuedo;
+                    } else {
+                      newNode.selector = atRule.parent.selectors[i] + tgtPsuedo;
+                    }
+                  }
+                  atRule.parent.parent.insertAfter(atRule.parent, newNode);
+                }
+              }
             }
           });
+          //end of each rule
         }
       }
       if (!atRule.parent.nodes.length || atRule.parent.nodes.length === 1) {
@@ -190,6 +223,49 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
       return a.filter(function(item) {
         return seen.hasOwnProperty(item) ? false : (seen[item] = true);
       });
+    }
+    function safeCopyDeclarations(nodeOrigin, nodeDest) {
+      nodeOrigin.nodes.forEach(function(node) {
+        if (isBadDefinitionNode(node)) return;
+        if (nodeDest.some(function(decl) { return decl.prop === node.prop; })) {
+          /*DEBUG*/ appendout('./test/debugout.txt', '\nsafeIgnored : ' + node + ' for ' + nodeDest.selector);
+          return;
+        }
+        /*DEBUG*/ appendout('./test/debugout.txt', '\nnodeDest Nodes:\n' + nodeDest.nodes);
+        var clone = node.clone();
+        //For lack of a better way to analyse how much tabbing is required:
+        if (nodeOrigin.parent === nodeDest.parent) {
+          clone.before = node.before;
+        } else {
+          clone.before = node.before + '\t';
+        }
+        clone.after = node.after;
+        clone.between = node.between;
+        nodeDest.append(clone);
+      });
+    }
+    function findBrotherPsuedoClass(nodeOrigin, tgtPsuedo) {
+      var foundNode = {};
+      var foundBool = nodeOrigin.parent.some(function (node) {
+        var seldiff = node.selectors;
+        var selectorAccumulator = nodeOrigin.selectors;
+        for (var x = selectorAccumulator.length - 1; x >= 0; x--) {
+          selectorAccumulator[x] = selectorAccumulator[x] + tgtPsuedo;
+        }
+        if (node !== nodeOrigin && selectorAccumulator.length === node.selectors.length) {
+          seldiff.push.apply(seldiff, selectorAccumulator);
+          seldiff = uniqreq(seldiff);
+          /*DEBUG*/ appendout('./test/debugout.txt', '\nseldiff : ' + seldiff + '\n\tBetween:\n' + node.selectors + '\n\tand:\n' + selectorAccumulator);
+          if (seldiff.length === selectorAccumulator.length) {
+            foundNode = node;
+            return true;
+          }
+        }
+      });
+      return {
+        node: foundNode,
+        bool: foundBool
+      };
     }
   };
 });
