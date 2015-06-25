@@ -4,6 +4,14 @@
 }
 
 @media (width > 600px) {
+  .potato {
+    float: left;
+  }
+
+  .potato:first{
+    float: center;
+  }
+  
   .spud {
     @extend .potato;
     font-weight: bold;
@@ -28,22 +36,45 @@
   background: pink;
 }
 
+#superfun::after li {
+  background: gray;
+}
+
 #superfun {
   @extend .potato;
 }
 
 #dbag {
   @extend .spud;
-}
-
-[href='#'],
-li:first-child {
-  color: black;
+  color: white;
 }
 
 .bar,
 #baz,
 div {
-  @extend li:first-child;
+  @extend #superfun::after li;
 }
 
+.bravo {
+  @extend %echo;
+  color: blue;
+  background: purple;
+}
+.charlie {
+  @extend .bravo;
+  color: red;
+  background: orange;
+}
+.delta {
+  @extend .charlie;
+  color: green;
+  background: gray;
+}
+%echo {
+  @extend devman;
+  color: green;
+  background: lightgreen;
+}
+@define-placeholder devman {
+  color: yellow;
+}
