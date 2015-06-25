@@ -8,8 +8,6 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
   return function(css, result) {
     var definingAtRules = ['define-placeholder', 'define-extend', 'simple-extend-define'];
     var extendingAtRules = ['extend', 'simple-extend', 'simple-extend-addto'];
-    var requestedExtends = {};
-    var fufilledExtends = [];
 
     css.eachAtRule(function(atRule) {
       if (definingAtRules.indexOf(atRule.name) !== -1) {
@@ -19,77 +17,30 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
       }
     });
 
-    // Act on requestedExtends
+    // Selectively disclude silents and placeholders, find unused,
+    // and exclude from the final output
     css.eachRule(function(targetNode) {
       var tgtSaved = targetNode.selectors;
-      //Strip all @define-placeholders and save slug-selectors into tgtSaved
+      var selectorAccumulator;
       for (var i = tgtSaved.length - 1; i >= 0; i--) {
-        if (tgtSaved[i].substring(0, 20) === '@define-placeholder ') {
-          /*DEBUG*/ appendout('./test/debugout.txt', '\nn[' + i + ']String = ' + tgtSaved[i] + ' Substring 0-20 = \'' + tgtSaved[i].substring(0, 20) + '\'');
-          tgtSaved[i] = tgtSaved[i].substring(20, (tgtSaved[i].length));
-          /*DEBUG*/ appendout('./test/debugout.txt', '\nresString = \'' + tgtSaved[i] + '\'');
+        if (tgtSaved[i].substring(0, 20) !== '@define-placeholder ' && tgtSaved[i].charAt(0) !== '%') {
+          if (!selectorAccumulator) {
+            selectorAccumulator = [ tgtSaved[i] ];
+          } else {
+            selectorAccumulator.push(tgtSaved[i]);
+          }
+        } else {
+          if (tgtSaved.length === 1) {
+            targetNode.removeSelf();
+          }
+          /*DEBUG*/ appendout('./test/debugout.txt', '\nSifted out placeholder/silent ' + tgtSaved[i]);
         }
       }
-      var tgtAccumulate = [];
-      for (var n = tgtSaved.length - 1; n >= 0; n--) {
-
-        //Selectively disclude slugs from final accumulation for placeholders and silent classes
-        if (targetNode.selectors.indexOf('@define-placeholder ' + tgtSaved[n]) === -1 &&
-          tgtSaved[n].charAt(0) !== '%') {
-          if (!tgtAccumulate) {
-            tgtAccumulate = [ (tgtSaved[n]) ];
-          } else {
-            tgtAccumulate.push(tgtSaved[n]);
-          }
-        } /*DEBUG*/ else {
-          /*DEBUG*/ appendout('./test/debugout.txt', '\nSifted out placeholder/silent ' + tgtSaved[n]);
-        /*DEBUG*/ }
-
-        // Operate on normal extendables
-        if (requestedExtends[tgtSaved[n]]) { // && targetNode.parent.type === 'root'
-          /*DEBUG*/ appendout('./test/debugout.txt', '\nrequestedExtends[' + tgtSaved[n] + '] : ' + requestedExtends[tgtSaved[n]]);
-
-          tgtAccumulate.push.apply(tgtAccumulate, requestedExtends[tgtSaved[n]]);
-          /*DEBUG*/ appendout('./test/debugout.txt', '\nCombined selectors :\n' + tgtAccumulate);
-          /*DEBUG*/ appendout('./test/debugout.txt', '\nSaving fufilled [' + tgtSaved[n] + ']');
-          if (!fufilledExtends) {
-            fufilledExtends = [ (tgtSaved[n]) ];
-          } else {
-            fufilledExtends.push(tgtSaved[n]);
-          }
-        }
-        //Operate on psuedo-elements of extendables (thus extending them)
-        if (tgtSaved[n].indexOf(':') !== -1 && requestedExtends[ tgtSaved[n].substring(0, tgtSaved[n].indexOf(':')) ]) { // && targetNode.parent.type === 'root'
-
-          var tgtBase = tgtSaved[n].substring(0, tgtSaved[n].indexOf(':'));
-          var tgtPsuedo = tgtSaved[n].substring(tgtSaved[n].indexOf(':'), tgtSaved[n].length);
-          var requestedExtArr = requestedExtends[tgtBase].toString().split(',');
-          /*DEBUG*/ appendout('./test/debugout.txt', '\nrequestedExtends[' + tgtSaved[n].substring(0, tgtSaved[n].indexOf(':')) + '] :\n' + tgtBase);
-
-          tgtAccumulate.push.apply(tgtAccumulate, formPsuedoSelector(requestedExtArr, tgtPsuedo));
-          /*DEBUG*/ appendout('./test/debugout.txt', '\nSaving fufilled [' + tgtSaved[n] + ']');
-          if (!fufilledExtends) {
-            fufilledExtends = [ (tgtSaved[n]) ];
-          } else {
-            fufilledExtends.push(tgtSaved[n]);
-          }
-        }//END OF psuedo root-extentions
+      if (selectorAccumulator) {
+        targetNode.selector = selectorAccumulator.join(', ');
       }
-      /*DEBUG*/ appendout('./test/debugout.txt', '\nStart uniqreq2 :\n' + tgtAccumulate);
-      //Kill off duplicate selectors
-      tgtAccumulate = uniqreq(tgtAccumulate).toString().replace(/,/g, ', ');
-      /*DEBUG*/ appendout('./test/debugout.txt', '\nPost uniqreq2 :\n' + tgtAccumulate);
-      targetNode.selector = tgtAccumulate;
     });
-
-    for (var selector in requestedExtends) {
-      if (requestedExtends.hasOwnProperty(selector) &&
-          fufilledExtends.indexOf(selector) === -1) {
-        result.warn('`' + selector + '`, has not been defined, so cannot be extended');
-        /*DEBUG*/ appendout('./test/debugout.txt', '\n' + selector + ' has not been defined!!!');
-      }
-    }
-
+    //simplification process to find definitions in the future
     function processDefinition(atRule) {
       if (isBadDefinitionLocation(atRule)) {
         atRule.removeSelf();
@@ -110,75 +61,124 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
         definition.append(clone);
       });
       definition.selector = '@define-placeholder ' + atRule.params.toString();
+      /*DEBUG*/ appendout('./test/debugout.txt', '\nDeclaring placeholder : ' + definition.selector);
       atRule.parent.insertBefore(atRule, definition);
       atRule.removeSelf();
     }
 
     function processExtension(atRule) {
       if (!isBadExtensionLocation(atRule)) {
+        var selectorRetainer;
+        var couldExtend = false;
+        var psuedoFound;
+        var psuedoTarget = {
+          node: {},
+          bool: false
+        };
+
         if (!hasMediaAncestor(atRule)) {
-          //Work by adding our rule's selectors to be (later) added to the extended rule
-          var selectorsToAdd = atRule.parent.selectors;
-          /*DEBUG*/ appendout('./test/debugout.txt', '\nRunning find-behavior');
-          if (!requestedExtends[atRule.params]) {
-            requestedExtends[atRule.params] = selectorsToAdd;
-          } else {
-            requestedExtends[atRule.params].push.apply(requestedExtends[atRule.params], selectorsToAdd);
-          }
-          /*DEBUG*/ appendout('./test/debugout.txt', '\nrequestExt: ' + atRule.params + ' : ' + selectorsToAdd + '\ncreated: ' + requestedExtends[atRule.params]);
+          css.eachRule(function(targetNode) {
+            var tgtSaved = targetNode.selectors;
+            var originSels = atRule.parent.selectors;
+            //Strip all @define-placeholders and save slug-selectors present in tgtSaved
+            for (var i = tgtSaved.length - 1; i >= 0; i--) {
+              if (tgtSaved[i].substring(0, 20) === '@define-placeholder ') {
+                /*DEBUG*/ appendout('./test/debugout.txt', '\nn[' + i + ']String = ' + tgtSaved[i] + ' Substring 0-20 = \'' + tgtSaved[i].substring(0, 20) + '\'');
+                tgtSaved[i] = tgtSaved[i].substring(20, (tgtSaved[i].length));
+                /*DEBUG*/ appendout('./test/debugout.txt', '\nresString = \'' + tgtSaved[i] + '\'');
+              }
+            }
+            var tgtAccumulate = [];
+            for (var n = tgtSaved.length - 1; n >= 0; n--) {
+
+              //Add existing selector (that we're working with) to output list
+              if (!tgtAccumulate) {
+                tgtAccumulate = [ targetNode.selectors[n] ];
+              } else {
+                tgtAccumulate.push(targetNode.selectors[n]);
+              }
+              // Operate on normal extendables
+              if (atRule.params === tgtSaved[n]) {
+                /*DEBUG*/ appendout('./test/debugout.txt', '\nfound and extending : ' + tgtSaved[n] + ' : ' + originSels);
+
+                tgtAccumulate.push.apply(tgtAccumulate, originSels);
+                /*DEBUG*/ appendout('./test/debugout.txt', '\nCombined selectors :\n' + tgtAccumulate);
+                couldExtend = true;
+                //Operate on psuedo-elements of extendables (thus extending them)
+              } else if (tgtSaved[n].indexOf(':') !== -1) {
+                var tgtBase = tgtSaved[n].substring(0, tgtSaved[n].indexOf(':'));
+                var tgtPsuedo = tgtSaved[n].substring(tgtSaved[n].indexOf(':'), tgtSaved[n].length);
+                if (atRule.params === tgtBase) {
+                  /*DEBUG*/ appendout('./test/debugout.txt', '\nfound and extending : ' + tgtSaved[n].substring(0, tgtSaved[n].indexOf(':')) + ' :\n' + tgtBase);
+
+                  tgtAccumulate.push.apply(tgtAccumulate, formPsuedoSelector(originSels, tgtPsuedo));
+                  couldExtend = true;
+                }
+              }//END OF psuedo root-extentions
+            }
+            if (couldExtend) {
+              /*DEBUG*/ appendout('./test/debugout.txt', '\nStart uniqreq2 :\n' + tgtAccumulate);
+              //Kill off duplicate selectors
+              tgtAccumulate = uniqreq(tgtAccumulate).toString().replace(/,/g, ', ');
+              /*DEBUG*/ appendout('./test/debugout.txt', '\nPost uniqreq2 :\n' + tgtAccumulate);
+              targetNode.selector = tgtAccumulate;
+            }
+          });
+        //hasMediaAncestor === true: ---------------
         } else {
           //Work by copying the declarations of our target rule
           /*DEBUG*/ appendout('./test/debugout.txt', '\nAttempting to fetch declarations for ' + atRule.params + '...');
-          var psuedoFound;
-          var psuedoTarget = {
-            node: {},
-            bool: false
-          };
-          var selectorRetainer;
+
           css.eachRule(function(targetNode) {
             if (targetNode.selectors.indexOf(atRule.params) !== -1) {
               if (targetNode.parent === atRule.parent.parent) {
-                /*DEBUG*/ appendout('./test/debugout.txt', '\n...tacking onto targetNode :\n' + targetNode);
+                /*DEBUG*/ appendout('./test/debugout.txt', '\n...tacking onto targetNode :' + targetNode);
                 selectorRetainer = targetNode.selector;
                 targetNode.selector = selectorRetainer + ', ' + atRule.parent.selectors.join(', ');
               } else {
                 /*DEBUG*/ appendout('./test/debugout.txt', '\n...grabbing targetNode :\n' + targetNode);
                 safeCopyDeclarations(targetNode, atRule.parent);
               }
-            }
-            //Pull from psuedo-elements of target nodes (thus extending them)
-            psuedoFound = false;
-            psuedoTarget.bool = false;
+              couldExtend = true;
+            } else {
+              //Pull from psuedo-elements of target nodes (thus extending them)
+              psuedoFound = false;
+              psuedoTarget.bool = false;
 
-            for (var n = targetNode.selectors.length - 1; n >= 0 && !psuedoFound; n--) {
-              var tgtBase = targetNode.selectors[n].substring(0, targetNode.selectors[n].indexOf(':'));
-              var tgtPsuedo = targetNode.selectors[n].substring(targetNode.selectors[n].indexOf(':'), targetNode.selectors[n].length);
-              if (targetNode.selectors[n].indexOf(':') !== -1 && tgtBase === atRule.params) { // && targetNode.parent.type === 'root'
-                psuedoFound = true;
-                //check for prexisting psuedo classes before making one
-                psuedoTarget = findBrotherPsuedoClass(atRule.parent, tgtPsuedo);
-                if (psuedoTarget.bool) {
-                  //utilize existing psuedoclass for extention
-                  /*DEBUG*/ appendout('./test/debugout.txt', '\nUtilizing existing psuedoclass for extention:\n' + psuedoTarget);
-                  safeCopyDeclarations(targetNode, psuedoTarget.node);
-                } else if (targetNode.parent === atRule.parent.parent) {
-                  /*DEBUG*/ appendout('./test/debugout.txt', '\nUtilizing existing brother psuedoclass for extention, as nothing matches: \n' + atRule.parent.selector + ' psuedo-' + tgtPsuedo);
-                  selectorRetainer = targetNode.selector;
-                  targetNode.selector = selectorRetainer + ', ' + formPsuedoSelector(atRule.parent.selectors, tgtPsuedo).join(', ');
-                  //Use Tacking onto exiting selectors instead of new creation
-                } else {
-                  //create additional nodes below existing for each psuedoInstance
-                  /*DEBUG*/ appendout('./test/debugout.txt', '\nUtilizing new psuedoclass for extention, as nothing matches: \n' + atRule.parent.selector + ' psuedo-' + tgtPsuedo);
-                  var newNode = postcss.rule();
-                  newNode.semicolon = atRule.semicolon;
-                  safeCopyDeclarations(targetNode, newNode);
-                  newNode.selector = formPsuedoSelector(atRule.parent.selectors, tgtPsuedo).join(', ');
-                  atRule.parent.parent.insertAfter(atRule.parent, newNode);
+              for (var n = targetNode.selectors.length - 1; n >= 0 && !psuedoFound; n--) {
+                var tgtBase = targetNode.selectors[n].substring(0, targetNode.selectors[n].indexOf(':'));
+                var tgtPsuedo = targetNode.selectors[n].substring(targetNode.selectors[n].indexOf(':'), targetNode.selectors[n].length);
+                if (targetNode.selectors[n].indexOf(':') !== -1 && tgtBase === atRule.params) {
+                  psuedoFound = true;
+                  //check for prexisting psuedo classes before making one
+                  psuedoTarget = findBrotherPsuedoClass(atRule.parent, tgtPsuedo);
+                  if (psuedoTarget.bool) {
+                    //utilize existing psuedoclass for extention
+                    /*DEBUG*/ appendout('./test/debugout.txt', '\nUtilizing existing psuedoclass for extention:\n' + psuedoTarget);
+                    safeCopyDeclarations(targetNode, psuedoTarget.node);
+                  } else if (targetNode.parent === atRule.parent.parent) {
+                    /*DEBUG*/ appendout('./test/debugout.txt', '\nUtilizing existing brother psuedoclass for extention, as nothing matches: \n' + atRule.parent.selector + ' psuedo-' + tgtPsuedo);
+                    selectorRetainer = targetNode.selector;
+                    targetNode.selector = selectorRetainer + ', ' + formPsuedoSelector(atRule.parent.selectors, tgtPsuedo).join(', ');
+                    //Use Tacking onto exiting selectors instead of new creation
+                  } else {
+                    //create additional nodes below existing for each psuedoInstance
+                    /*DEBUG*/ appendout('./test/debugout.txt', '\nUtilizing new psuedoclass for extention, as nothing matches: \n' + atRule.parent.selector + ' psuedo-' + tgtPsuedo);
+                    var newNode = postcss.rule();
+                    newNode.semicolon = atRule.semicolon;
+                    safeCopyDeclarations(targetNode, newNode);
+                    newNode.selector = formPsuedoSelector(atRule.parent.selectors, tgtPsuedo).join(', ');
+                    atRule.parent.parent.insertAfter(atRule.parent, newNode);
+                  }
+                  couldExtend = true;
                 }
               }
             }
-          });
-          //end of each rule
+          }); //end of each rule
+        } //end of if hasMediaAncestor
+        if (!couldExtend) {
+          result.warn('\'' + atRule.params + '\', has not been defined, so cannot be extended');
+          /*DEBUG*/ appendout('./test/debugout.txt', '\n\'' + atRule.params + '\' has not been defined!!!');
         }
       }
       if (!atRule.parent.nodes.length || atRule.parent.nodes.length === 1) {

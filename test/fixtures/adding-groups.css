@@ -1,47 +1,9 @@
-.potato {
-  color: white;
-  outline: brown;
-}
-
-@media (width > 600px) {
-  .potato {
-    float: left;
-  }
-
-  .potato:first{
-    float: center;
-  }
-  
-  .spud {
-    @extend .potato;
-    font-weight: bold;
-    color: red;
-  }
-  .spud:first-child {
-    background: purple;
-  }
-  .sputnik {
-    @extend .spud;
-    font-weight: normal;
-    font-style: italic;
-  }
-}
-
-.potato:first-child,
-.potato:last-child {
-  background: brown;
-}
-
-.potato::after li {
-  background: pink;
-}
-
-#superfun::after li {
-  background: gray;
-}
-
 #superfun {
-  @extend .potato;
+  color: magenta;
+}
+
+#superfun:active {
+  text-decoration: blink;
 }
 
 #dbag {
@@ -52,26 +14,41 @@
 .bar,
 #baz,
 div {
-  @extend #superfun::after li;
+  @extend #superfun;
 }
 
 .bravo {
-  @extend %echo;
+  @extend .charlie;
   color: blue;
   background: purple;
 }
 .charlie {
-  @extend .bravo;
+  @extend .delta;
   color: red;
   background: orange;
 }
 .delta {
-  @extend .charlie;
+  @extend %whisper;
   color: green;
   background: gray;
 }
-%echo {
+
+.echo {
   @extend devman;
+  color: blue;
+  background: purple;
+}
+.foxtrot {
+  @extend .echo;
+  color: red;
+  background: orange;
+}
+.gulf {
+  @extend .foxtrot;
+  color: green;
+  background: gray;
+}
+%whisper {
   color: green;
   background: lightgreen;
 }
