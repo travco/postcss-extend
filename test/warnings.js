@@ -88,41 +88,12 @@ test('registers extend-without-definition warning', function(t) {
     var extendUndefined = '.bar { @extend foo; }';
     checkForWarnings(extendUndefined, function(warnings, result) {
       st.equal(warnings.length, 1, 'registers a warning');
-      // st.ok(/has not \(yet\) been defined/.test(warnings[0].text),
-      //   'registers the right warning');
-      st.equal(result.css, '.bar { }', 'bad extension is removed');
-      st.end();
-    });
-  });
-
-  t.test('with a not-yet-defined placeholder', function(st) {
-    var extendNotYetDefined = (
-      '.bar { @extend foo; }' +
-      '@define-placeholder { background: pink; }'
-    );
-    checkForWarnings(extendNotYetDefined, function(warnings, result) {
-      st.equal(warnings.length, 1, 'registers a warning');
-      // st.ok(/has not \(yet\) been defined/.test(warnings[0].text),
-      //   'registers the right warning');
-      st.equal(result.css, '.bar { }', 'bad extension and unused placeholder are removed');
+      st.ok(/, has not been defined, so cannot be extended/.test(warnings[0].text),
+        'registers the right warning');
+      st.equal(result.css, '', 'bad extension is removed');
       st.end();
     });
   });
 
   t.end();
-});
-
-test('registers extend-inside-media warning', function(t) {
-  var addInsideMedia = (
-    '@define-placeholder foo { background: pink; }' +
-    '@media (max-width: 400px) { .bar { @extend foo; } }'
-  );
-  checkForWarnings(addInsideMedia, function(warnings, result) {
-    t.equal(warnings.length, 1, 'registers a warning');
-    t.ok(/cannot occur inside a @media statement/.test(warnings[0].text),
-      'registers the right warning');
-    t.equal(result.css, '@media (max-width: 400px) { .bar { } }',
-      'bad extension and unused placeholder are removed');
-    t.end();
-  });
 });

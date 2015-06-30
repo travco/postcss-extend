@@ -1,57 +1,16 @@
-#superfun {
-  color: magenta;
-}
-
-#superfun:active {
-  text-decoration: blink;
-}
-
-#dbag {
-  @extend .spud;
-  color: white;
+@define-placeholder foo {
+  background: pink;
 }
 
 .bar,
 #baz,
 div {
-  @extend #superfun;
+  @extend foo;
+  color: orange;
 }
 
-.bravo {
-  @extend .charlie;
-  color: blue;
-  background: purple;
-}
-.charlie {
-  @extend .delta;
-  color: red;
-  background: orange;
-}
-.delta {
-  @extend %whisper;
-  color: green;
-  background: gray;
-}
-
-.echo {
-  @extend devman;
-  color: blue;
-  background: purple;
-}
-.foxtrot {
-  @extend .echo;
-  color: red;
-  background: orange;
-}
-.gulf {
-  @extend .foxtrot;
-  color: green;
-  background: gray;
-}
-%whisper {
-  color: green;
-  background: lightgreen;
-}
-@define-placeholder devman {
-  color: yellow;
+[href='#'],
+li:first-child {
+  @extend foo;
+  color: black;
 }

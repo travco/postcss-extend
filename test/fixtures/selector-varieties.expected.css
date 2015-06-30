@@ -1,13 +1,6 @@
 /* scattershot selector variety */
 
-#bar,
-#bar::before,
-#bar:hover,
-div[attr="bar"],
-ul,
-li,
-a,
-div ul > li + span ~ span {
+#bar, #bar::before, #bar:hover, div[attr="bar"], ul, li, a, div ul > li + span ~ span {
   background: pink;
 }
 
@@ -27,9 +20,7 @@ div[attr="bar"] {
   color: black;
 }
 
-ul,
-li,
-a {
+ul, li, a {
   color: black;
 }
 

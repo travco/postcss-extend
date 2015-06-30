@@ -1,13 +1,8 @@
-.bar,
-#baz,
-div,
-[href='#'], li:first-child {
+.bar, #baz, div, [href='#'], li:first-child {
   background: pink;
 }
 
-.bar,
-#baz,
-div {
+.bar, #baz, div {
   color: orange;
 }
 

@@ -1,6 +1,4 @@
-.bar,
-#baz,
-div {
+.bar, #baz, div {
   background: pink;
 }
 
