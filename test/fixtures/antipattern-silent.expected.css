@@ -1,0 +1,7 @@
+.bar, #baz, div {
+  color: orange;
+}
+
+.bar, #baz, div {
+  background: pink;
+}

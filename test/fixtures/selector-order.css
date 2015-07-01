@@ -1,0 +1,15 @@
+.charlie {
+  @extend .bravo;
+  @extend .delta;
+  color: red;
+  background: orange;
+}
+.bravo {
+  color: blue;
+  background: purple;
+}
+.delta {
+  @extend .bravo;
+  color: green;
+  background: gray;
+}

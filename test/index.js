@@ -127,6 +127,72 @@ test('extending rules directly works when the addto rule set is otherwise empty'
   t.end();
 });
 
+test('@define doesn\'t work in an anti-pattern', function(t) {
+  compareFixtures(t, 'antipattern');
+  t.end();
+});
+
+test('%placeholder works even in an anti-pattern', function(t) {
+  compareFixtures(t, 'antipattern-silent');
+  t.end();
+});
+
+test('direct extentions work even in an anti-pattern', function(t) {
+  compareFixtures(t, 'antipattern-direct');
+  t.end();
+});
+
+test('removes duplicate selectors automatically', function(t) {
+  compareFixtures(t, 'duplicate-selectors');
+  t.end();
+});
+
+test('bidirectionally recursive behavior on direct extentions', function(t) {
+  compareFixtures(t, 'bidirectionally-recursive');
+  t.end();
+});
+
+test('can extend pseudo-rules of target extention', function(t) {
+  compareFixtures(t, 'pseudo-root');
+  t.end();
+});
+
+test('recursive actions on extended pseudo-rules', function(t) {
+  compareFixtures(t, 'pseudo-recursive');
+  t.end();
+});
+
+test('intelligently utilizes existing pseudo rules at root', function(t) {
+  compareFixtures(t, 'pseudo-int-root');
+  t.end();
+});
+
+test('extending in media has (safe) pull-in behavior, and basic behavior in scope', function(t) {
+  compareFixtures(t, 'media-basic');
+  t.end();
+});
+
+test('extending in media has intelligent pseudo-copying behavior in-scope', function(t) {
+  compareFixtures(t, 'media-pseudo');
+  t.end();
+});
+
+test('extending in media will create pseudo rules (in-scope) for targets out of scope', function(t) {
+  compareFixtures(t, 'media-advanced-pseudo');
+  t.end();
+});
+
+test('cross-media extentions pull in correctly', function(t) {
+  compareFixtures(t, 'media-cross-media');
+  t.end();
+});
+
+test('has predicatable, logical ordering of selectors', function(t) {
+  compareFixtures(t, 'selector-order');
+  t.end();
+});
+
+/*END OF FILEBORN TESTS ----------------*/
 test('works when invoked with () or without', function(t) {
   var someCss = '@define-placeholder bar { background: pink; } .foo { @extend bar; }';
 
@@ -176,26 +242,9 @@ test('eliminates faulty extension', function(t) {
   t.end();
 });
 
-/* TESTS THAT NEED TO BE MADE ('~' means indirectly tested, # means added):
-# Works with silent '%' selectors
-# Works with existing rules at root
-@define doesn't work in anti-pattern, silent % does.
-Eliminates duplicate selectors on extended rules
-~ Removes otherwise empty code blocks
-Acts recursively (both directions thanks to 'living log' behavior)
-Targets pseudo classes and extends them with psuedo version of the extended
-Acts recursively on pseudo classes
-Finds it's exisiting pseudo classes (shared scope) and pulls declarations into them when possible
-@extend finds it's existing pseudo classes (shared scope) and pulls, but continues to process the rest of the selectors in the target rule appropriately
-@extend in @media finds it's exisiting pseudo classes (shared scope) and pulls declarations into them when possible
-@extend inside @media does a declaration pull for anything outside @media
-/\Correctly handles re-declarations, by ignoreing incoming via @extend (original overwrites)
-@extend inside @media pulls&creates for targeted psuedo classes outside @media
-@extend inside @media tacks onto those also inside the same @media
-@extend inside @media does a declaration pull from other @media blocks
-/\Correctly handles re-declarations, by ignoreing incoming via @extend (original overwrites)
-@extend inside @media pulls&creates for targeted psuedo classes from other @media blocks
-Order of naming remains predicatable add-to-tail fashion, and follows vertical order, then recursion in priority
-*/
+test('eliminates faulty extension-only rule', function(t) {
+  t.equal(p('.foo { @extend baz; }'), '');
+  t.end();
+});
 
 require('./warnings');

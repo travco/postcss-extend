@@ -1,0 +1,18 @@
+%foo {
+  background: pink;
+}
+
+.bar {
+  @extend %foo;
+  color: orange;
+}
+
+#baz {
+  @extend %foo;
+  color: green;
+}
+
+div {
+  @extend %foo;
+  color: yellow;
+}

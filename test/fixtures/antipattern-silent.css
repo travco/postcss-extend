@@ -1,0 +1,10 @@
+.bar,
+#baz,
+div {
+  @extend %foo;
+  color: orange;
+}
+
+%foo {
+  background: pink;
+}

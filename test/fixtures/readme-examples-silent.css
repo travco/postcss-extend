@@ -1,0 +1,13 @@
+%gigantic {
+  font-size: 40em;
+}
+
+.foo {
+  @extend %gigantic;
+  color: red;
+}
+
+.bar {
+  @extend %gigantic;
+  color: orange;
+}

@@ -1,0 +1,24 @@
+.potato {
+  color: white;
+  outline: brown;
+}
+
+.potato:first {
+  float: center;
+}
+
+.spud {
+  @extend .potato;
+  font-weight: bold;
+  color: red;
+}
+
+.spud:first-child {
+  background: purple;
+}
+
+.sputnik {
+ @extend .spud;
+ font-weight: normal;
+ font-style: italic;
+}

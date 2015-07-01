@@ -1,0 +1,9 @@
+.foo, .mark {
+  background: pink;
+}
+
+.bar {
+  @extend .foo;
+  @extend .mark;
+  color: orange;
+}

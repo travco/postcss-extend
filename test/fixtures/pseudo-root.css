@@ -1,0 +1,12 @@
+.potato:first-child,
+.potato:last-child {
+  background: brown;
+}
+
+.potato::after li {
+  background: pink;
+}
+
+#superfun {
+  @extend .potato;
+}

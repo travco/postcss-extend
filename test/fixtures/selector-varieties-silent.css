@@ -1,0 +1,37 @@
+/* scattershot selector variety */
+
+%foo {
+  background: pink;
+}
+
+#bar {
+  @extend %foo;
+  color: black;
+}
+
+#bar::before {
+  @extend %foo;
+  color: black;
+}
+
+#bar:hover {
+  @extend %foo;
+  color: black;
+}
+
+div[attr="bar"] {
+  @extend %foo;
+  color: black;
+}
+
+ul,
+li,
+a {
+  @extend %foo;
+  color: black;
+}
+
+div ul > li + span ~ span {
+  @extend %foo;
+  color: black;
+}

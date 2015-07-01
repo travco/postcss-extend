@@ -1,0 +1,15 @@
+.potato {
+  float: left;
+}
+
+.potato::after li, .potato:first {
+  color: pink;
+}
+
+#superfun::after li {
+  background: gray;
+}
+
+#superfun {
+  @extend .potato;
+}

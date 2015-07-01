@@ -1,0 +1,15 @@
+.bar, #baz, div {
+  background: pink;
+}
+
+.bar {
+  color: orange;
+}
+
+#baz {
+  color: green;
+}
+
+div {
+  color: yellow;
+}

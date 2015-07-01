@@ -1,0 +1,24 @@
+.bravo {
+  color: blue;
+  background: purple;
+}
+.charlie, .bravo {
+  color: red;
+  background: orange;
+}
+.delta, .charlie, .bravo {
+  color: green;
+  background: gray;
+}
+.echo, .foxtrot, .gulf {
+  color: blue;
+  background: purple;
+}
+.foxtrot, .gulf {
+  color: red;
+  background: orange;
+}
+.gulf {
+  color: green;
+  background: gray;
+}

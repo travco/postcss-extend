@@ -1,0 +1,10 @@
+.bar,
+#baz,
+div {
+  @extend foo;
+  color: orange;
+}
+
+@define-placeholder foo {
+  background: pink;
+}

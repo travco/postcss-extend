@@ -1,0 +1,16 @@
+%foo {
+  background: pink;
+}
+
+.bar,
+#baz,
+div {
+  @extend %foo;
+  color: orange;
+}
+
+[href='#'],
+li:first-child {
+  @extend %foo;
+  color: black;
+}

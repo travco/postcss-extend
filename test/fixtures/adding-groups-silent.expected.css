@@ -1,0 +1,11 @@
+.bar, #baz, div, [href='#'], li:first-child {
+  background: pink;
+}
+
+.bar, #baz, div {
+  color: orange;
+}
+
+[href='#'], li:first-child {
+  color: black;
+}

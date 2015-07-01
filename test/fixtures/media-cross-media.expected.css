@@ -1,0 +1,28 @@
+@media (width > 600px) {
+  .potato {
+    color: blue;
+    float: left;
+    font-family: sans-serif;
+    font-weight: bold;
+    	background: black;
+    	outline: dashed;
+  }
+
+  .potato:first {
+    float: center;
+  }
+}
+
+@media (width < 600px) {
+  .spud {
+    color: red;
+    background: black;
+    outline: dashed;
+    	float: left;
+    	font-family: sans-serif;
+    	font-weight: bold;
+  }
+  .spud:first {
+    	float: center;
+  }
+}

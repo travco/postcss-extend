@@ -1,0 +1,32 @@
+.potato {
+  color: white;
+  outline: brown;
+}
+
+.potato:first-child, .potato:last-child {
+  background: brown;
+}
+
+@media (width > 600px) {
+  .potato, .spud {
+    float: left;
+  }
+
+  .potato:first, .spud:first {
+    float: center;
+  }
+  
+  .spud {
+    font-weight: bold;
+    color: red;
+  	outline: brown;
+  }
+  
+  .spud:last-child {
+  	background: brown;
+  }
+  
+  .spud:first-child {
+  	background: brown;
+  }
+}

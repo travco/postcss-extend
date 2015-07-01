@@ -1,0 +1,22 @@
+.potato {
+  color: white;
+  outline: brown;
+  font-family: sans-serif;
+  font-style: underline;
+  font-weight: normal;
+}
+
+@media (width > 600px) {
+  .potato:first, .spud:first {
+    float: center;
+  }
+  
+  .spud {
+    color: red;
+    font-size: 4em;
+    font-weight: bold;
+  	outline: brown;
+  	font-family: sans-serif;
+  	font-style: underline;
+  }
+}

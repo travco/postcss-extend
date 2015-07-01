@@ -1,0 +1,7 @@
+.foo, .mark, .bar {
+  background: pink;
+}
+
+.bar {
+  color: orange;
+}

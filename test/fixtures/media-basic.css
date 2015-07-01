@@ -1,0 +1,20 @@
+.potato {
+  color: white;
+  outline: brown;
+  font-family: sans-serif;
+  font-style: underline;
+  font-weight: normal;
+}
+
+@media (width > 600px) {
+  .potato:first {
+    float: center;
+  }
+  
+  .spud {
+    @extend .potato;
+    color: red;
+    font-size: 4em;
+    font-weight: bold;
+  }
+}

@@ -1,0 +1,22 @@
+.potato, .spud, .sputnik {
+  color: white;
+  outline: brown;
+}
+
+.potato:first, .spud:first, .sputnik:first {
+  float: center;
+}
+
+.spud, .sputnik {
+  font-weight: bold;
+  color: red;
+}
+
+.spud:first-child, .sputnik:first-child {
+  background: purple;
+}
+
+.sputnik {
+ font-weight: normal;
+ font-style: italic;
+}

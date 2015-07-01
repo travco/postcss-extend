@@ -1,0 +1,7 @@
+%foo {
+  background: pink;
+}
+
+.bar {
+  @extend %foo;
+}

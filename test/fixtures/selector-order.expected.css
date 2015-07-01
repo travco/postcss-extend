@@ -1,0 +1,12 @@
+.charlie {
+  color: red;
+  background: orange;
+}
+.bravo, .charlie, .delta {
+  color: blue;
+  background: purple;
+}
+.delta, .charlie {
+  color: green;
+  background: gray;
+}
