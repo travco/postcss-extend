@@ -109,21 +109,21 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
                 //Operate on pseudo-elements of extendables (thus extending them)
               } else if (tgtSaved[n].indexOf(':') !== -1) {
                 var tgtBase = tgtSaved[n].substring(0, tgtSaved[n].indexOf(':'));
-                var tgtpseudo = tgtSaved[n].substring(tgtSaved[n].indexOf(':'), tgtSaved[n].length);
+                var tgtPseudo = tgtSaved[n].substring(tgtSaved[n].indexOf(':'), tgtSaved[n].length);
                 if (atRule.params === tgtBase) {
                   //check for prexisting pseudo classes before tacking
-                  /*DEEP DEBUG*/ appendout('./test/debugout.txt', '\nCalling root-level findBrotherpseudoClass with :\n' + atRule.parent + ',\n' + tgtpseudo);
-                  pseudoTarget = findBrotherpseudoClass(atRule.parent, tgtpseudo);
+                  /*DEEP DEBUG*/ appendout('./test/debugout.txt', '\nCalling root-level findBrotherPseudoClass with :\n' + atRule.parent + ',\n' + tgtPseudo);
+                  pseudoTarget = findBrotherPseudoClass(atRule.parent, tgtPseudo);
                   if (pseudoTarget.bool) {
                     //utilize existing pseudoclass for extention
                     /*DEBUG*/ appendout('./test/debugout.txt', '\nUtilizing existing pseudoclass for extention:\n' + pseudoTarget);
                     safeCopyDeclarations(targetNode, pseudoTarget.node);
                   } else {
                     //tack onto target node
-                    /*DEBUG*/ appendout('./test/debugout.txt', '\nfound and extending : ' + tgtSaved[n].substring(0, tgtSaved[n].indexOf(':')) + ' :\n' + tgtBase + ' (' + tgtpseudo + ')');
+                    /*DEBUG*/ appendout('./test/debugout.txt', '\nfound and extending : ' + tgtSaved[n].substring(0, tgtSaved[n].indexOf(':')) + ' :\n' + tgtBase + ' (' + tgtPseudo + ')');
 
-                    /*DEBUG*/ appendout('./test/debugout.txt', '\nCalling formpseudoSelector with (\n' + originSels + ',\n' + tgtpseudo);
-                    tgtAccumulate = tgtAccumulate.concat(formpseudoSelector(originSels, tgtpseudo));
+                    /*DEBUG*/ appendout('./test/debugout.txt', '\nCalling formPseudoSelector with (\n' + originSels + ',\n' + tgtPseudo);
+                    tgtAccumulate = tgtAccumulate.concat(formPseudoSelector(originSels, tgtPseudo));
                     /*DEBUG*/ appendout('./test/debugout.txt', '\nCombined selectors :\n' + tgtAccumulate);
                   }
                   couldExtend = true;
@@ -158,26 +158,26 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
               //Pull from pseudo-elements of target nodes (thus extending them)
               for (var n = 0; n < targetNode.selectors.length; n++) {
                 var tgtBase = targetNode.selectors[n].substring(0, targetNode.selectors[n].indexOf(':'));
-                var tgtpseudo = targetNode.selectors[n].substring(targetNode.selectors[n].indexOf(':'), targetNode.selectors[n].length);
+                var tgtPseudo = targetNode.selectors[n].substring(targetNode.selectors[n].indexOf(':'), targetNode.selectors[n].length);
                 if (targetNode.selectors[n].indexOf(':') !== -1 && tgtBase === atRule.params) {
                   //check for prexisting pseudo classes before making one
-                  pseudoTarget = findBrotherpseudoClass(atRule.parent, tgtpseudo);
+                  pseudoTarget = findBrotherPseudoClass(atRule.parent, tgtPseudo);
                   if (pseudoTarget.bool) {
                     //utilize existing pseudoclass for extention
                     /*DEBUG*/ appendout('./test/debugout.txt', '\nUtilizing existing pseudoclass for extention:\n' + pseudoTarget);
                     safeCopyDeclarations(targetNode, pseudoTarget.node);
                   } else if (targetNode.parent === atRule.parent.parent) {
                     //Use Tacking onto exiting selectors instead of new creation
-                    /*DEBUG*/ appendout('./test/debugout.txt', '\nUtilizing existing brother pseudoclass for extention, as nothing matches: \n' + atRule.parent.selector + ' pseudo-' + tgtpseudo);
+                    /*DEBUG*/ appendout('./test/debugout.txt', '\nUtilizing existing brother pseudoclass for extention, as nothing matches: \n' + atRule.parent.selector + ' pseudo-' + tgtPseudo);
                     selectorRetainer = targetNode.selector;
-                    targetNode.selector = selectorRetainer + ', ' + formpseudoSelector(originSels, tgtpseudo).join(', ');
+                    targetNode.selector = selectorRetainer + ', ' + formPseudoSelector(originSels, tgtPseudo).join(', ');
                   } else {
                     //create additional nodes below existing for each instance of pseudos
-                    /*DEBUG*/ appendout('./test/debugout.txt', '\nUtilizing new pseudoclass for extention, as nothing matches: \n' + atRule.parent.selector + ' pseudo-' + tgtpseudo);
+                    /*DEBUG*/ appendout('./test/debugout.txt', '\nUtilizing new pseudoclass for extention, as nothing matches: \n' + atRule.parent.selector + ' pseudo-' + tgtPseudo);
                     var newNode = postcss.rule();
                     newNode.semicolon = atRule.semicolon;
                     safeCopyDeclarations(targetNode, newNode);
-                    newNode.selector = formpseudoSelector(atRule.parent.selectors, tgtpseudo).join(', ');
+                    newNode.selector = formPseudoSelector(atRule.parent.selectors, tgtPseudo).join(', ');
                     atRule.parent.parent.insertAfter(atRule.parent, newNode);
                   }
                   couldExtend = true;
@@ -255,21 +255,21 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
         nodeDest.append(clone);
       });
     }
-    function formpseudoSelector(selArr, tgtpseudo) {
+    function formPseudoSelector(selArr, tgtPseudo) {
       var selectorRetainer = selArr.slice();
       for (var i = 0; i < selectorRetainer.length; i++) {
-        selectorRetainer[i] = selectorRetainer[i] + tgtpseudo;
+        selectorRetainer[i] = selectorRetainer[i] + tgtPseudo;
       }
       return selectorRetainer;
     }
-    function findBrotherpseudoClass(nodeOrigin, tgtpseudo) {
+    function findBrotherPseudoClass(nodeOrigin, tgtPseudo) {
       var foundNode = {};
       var foundBool = nodeOrigin.parent.some(function (node) {
         if (node.selectors) {
           var seldiff = node.selectors;
           var selectorAccumulator = nodeOrigin.selectors;
           for (var x = 0; x < selectorAccumulator.length; x++) {
-            selectorAccumulator[x] = selectorAccumulator[x] + tgtpseudo;
+            selectorAccumulator[x] = selectorAccumulator[x] + tgtPseudo;
           }
           if (node !== nodeOrigin && selectorAccumulator.length === node.selectors.length) {
             seldiff = seldiff.concat(selectorAccumulator);
