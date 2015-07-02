@@ -1,7 +1,7 @@
 'use strict';
 
 var postcss = require('postcss');
-/*DEBUG*/ var appendout = require('fs').appendFileSync;
+// /*DEBUG*/ var appendout = require('fs').appendFileSync;
 
 module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend() {
 
@@ -9,7 +9,7 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
     var definingAtRules = ['define-placeholder', 'define-extend', 'simple-extend-define'];
     var extendingAtRules = ['extend', 'simple-extend', 'simple-extend-addto'];
 
-    /*DEBUG*/ appendout('./test/debugout.txt', '\n----------------------------------------');
+    // /*DEBUG*/ appendout('./test/debugout.txt', '\n----------------------------------------');
 
     css.eachAtRule(function(atRule) {
       if (definingAtRules.indexOf(atRule.name) !== -1) {
@@ -31,11 +31,11 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
           } else {
             selectorAccumulator.push(tgtSaved[i]);
           }
-        } else {
-          if (tgtSaved.length === 1) {
-            targetNode.removeSelf();
-          }
-          /*DEBUG*/ appendout('./test/debugout.txt', '\nSifted out placeholder/silent ' + tgtSaved[i]);
+        } else if (tgtSaved.length === 1) {
+          targetNode.removeSelf();
+        // /*DEBUG*/ } else {
+          // /*DEBUG*/ appendout('./test/debugout.txt', '\nSifted out placeholder/silent ' + tgtSaved[i]);
+        // /*DEBUG*/ }
         }
       }
       if (selectorAccumulator) {
@@ -63,7 +63,7 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
         definition.append(clone);
       });
       definition.selector = '@define-placeholder ' + atRule.params.toString();
-      /*DEBUG*/ appendout('./test/debugout.txt', '\nDeclaring placeholder : ' + definition.selector);
+      // /*DEBUG*/ appendout('./test/debugout.txt', '\nDeclaring placeholder : ' + definition.selector);
       atRule.parent.insertBefore(atRule, definition);
       atRule.removeSelf();
     }
@@ -84,9 +84,9 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
             //Strip all @define-placeholders and save slug-selectors present in tgtSaved
             for (var i = 0; i < tgtSaved.length; i++) {
               if (tgtSaved[i].substring(0, 20) === '@define-placeholder ') {
-                /*DEBUG*/ appendout('./test/debugout.txt', '\nn[' + i + ']String = ' + tgtSaved[i] + ' Substring 0-20 = \'' + tgtSaved[i].substring(0, 20) + '\'');
+                // /*DEBUG*/ appendout('./test/debugout.txt', '\nn[' + i + ']String = ' + tgtSaved[i] + ' Substring 0-20 = \'' + tgtSaved[i].substring(0, 20) + '\'');
                 tgtSaved[i] = tgtSaved[i].substring(20, (tgtSaved[i].length));
-                /*DEBUG*/ appendout('./test/debugout.txt', '\nresString = \'' + tgtSaved[i] + '\'');
+                // /*DEBUG*/ appendout('./test/debugout.txt', '\nresString = \'' + tgtSaved[i] + '\'');
               }
             }
             var tgtAccumulate = targetNode.selectors;
@@ -94,10 +94,10 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
             for (var n = 0; n < tgtSaved.length; n++) {
               // Operate on normal extendables
               if (atRule.params === tgtSaved[n]) {
-                /*DEBUG*/ appendout('./test/debugout.txt', '\nfound and extending : ' + tgtSaved[n] + ' : ' + originSels);
+                // /*DEBUG*/ appendout('./test/debugout.txt', '\nfound and extending : ' + tgtSaved[n] + ' : ' + originSels);
 
                 tgtAccumulate = tgtAccumulate.concat(originSels);
-                /*DEBUG*/ appendout('./test/debugout.txt', '\nCombined selectors :\n' + tgtAccumulate);
+                // /*DEBUG*/ appendout('./test/debugout.txt', '\nCombined selectors :\n' + tgtAccumulate);
                 couldExtend = true;
                 //Operate on pseudo-elements of extendables (thus extending them)
               } else if (tgtSaved[n].indexOf(':') !== -1) {
@@ -105,26 +105,26 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
                 var tgtPseudo = tgtSaved[n].substring(tgtSaved[n].indexOf(':'), tgtSaved[n].length);
                 if (atRule.params === tgtBase) {
                   //tack onto target node
-                  /*DEBUG*/ appendout('./test/debugout.txt', '\nfound and extending : ' + tgtSaved[n].substring(0, tgtSaved[n].indexOf(':')) + ' :\n' + tgtBase + ' (' + tgtPseudo + ')');
+                  // /*DEBUG*/ appendout('./test/debugout.txt', '\nfound and extending : ' + tgtSaved[n].substring(0, tgtSaved[n].indexOf(':')) + ' :\n' + tgtBase + ' (' + tgtPseudo + ')');
 
-                  /*DEBUG*/ appendout('./test/debugout.txt', '\nCalling formPseudoSelector with (\n' + originSels + ',\n' + tgtPseudo);
+                  // /*DEBUG*/ appendout('./test/debugout.txt', '\nCalling formPseudoSelector with (\n' + originSels + ',\n' + tgtPseudo);
                   tgtAccumulate = tgtAccumulate.concat(formPseudoSelector(originSels, tgtPseudo));
-                  /*DEBUG*/ appendout('./test/debugout.txt', '\nCombined selectors :\n' + tgtAccumulate);
+                  // /*DEBUG*/ appendout('./test/debugout.txt', '\nCombined selectors :\n' + tgtAccumulate);
                   couldExtend = true;
                 }
               }//END OF pseudo root-extentions
             }
             if (couldExtend) {
-              /*DEBUG*/ appendout('./test/debugout.txt', '\nStart uniqreq2 :\n' + tgtAccumulate);
+              // /*DEBUG*/ appendout('./test/debugout.txt', '\nStart uniqreq2 :\n' + tgtAccumulate);
               //Kill off duplicate selectors
               tgtAccumulate = uniqreq(tgtAccumulate).toString().replace(/,/g, ', ');
-              /*DEBUG*/ appendout('./test/debugout.txt', '\nPost uniqreq2 :\n' + tgtAccumulate);
+              // /*DEBUG*/ appendout('./test/debugout.txt', '\nPost uniqreq2 :\n' + tgtAccumulate);
               targetNode.selector = tgtAccumulate;
             }
           });
         //hasMediaAncestor === true: ---------------
         } else {
-          /*DEBUG*/ appendout('./test/debugout.txt', '\nAttempting to fetch declarations for ' + atRule.params + '...');
+          // /*DEBUG*/ appendout('./test/debugout.txt', '\nAttempting to fetch declarations for ' + atRule.params + '...');
           var backFirstTargetNode;
           var targetNodeArray = [];
           css.eachRule(function(subRule) {
@@ -132,21 +132,21 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
             //thus retaining priority when copying declarations if there are multiple matches
             if (!hasMediaAncestor(subRule) || subRule.parent === atRule.parent.parent) {
               targetNodeArray.push(subRule);
-            } else {
-              /*DEBUG*/ appendout('./test/debugout.txt', '\n\'' + atRule.params + '\' ignored possible target in another @media : \n' + subRule);
-            }
+            } // /*DEBUG*/ else {
+              // /*DEBUG*/ appendout('./test/debugout.txt', '\n\'' + atRule.params + '\' ignored possible target in another @media : \n' + subRule);
+            // /*DEBUG*/ }
           }); //end of each rule
           while (targetNodeArray.length > 0) {
             backFirstTargetNode = targetNodeArray.pop();
             if (backFirstTargetNode.selectors.indexOf(atRule.params) !== -1) {
               //In scope, tack on selector to target rule
               if (backFirstTargetNode.parent === atRule.parent.parent) {
-                /*DEBUG*/ appendout('./test/debugout.txt', '\n...tacking onto backFirstTargetNode :' + backFirstTargetNode);
+                // /*DEBUG*/ appendout('./test/debugout.txt', '\n...tacking onto backFirstTargetNode :' + backFirstTargetNode);
                 selectorRetainer = backFirstTargetNode.selector;
                 backFirstTargetNode.selector = selectorRetainer + ', ' + originSels.join(', ');
               //Out of scope, direcly copy declarations
               } else {
-                /*DEBUG*/ appendout('./test/debugout.txt', '\n...grabbing backFirstTargetNode :\n' + backFirstTargetNode);
+                // /*DEBUG*/ appendout('./test/debugout.txt', '\n...grabbing backFirstTargetNode :\n' + backFirstTargetNode);
                 safeCopyDeclarations(backFirstTargetNode, atRule.parent);
               }
               couldExtend = true;
@@ -158,7 +158,7 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
                 if (backFirstTargetNode.selectors[m].indexOf(':') !== -1 && extTgtBase === atRule.params) {
                   if (backFirstTargetNode.parent === atRule.parent.parent) {
                     //Use Tacking onto exiting selectors instead of new creation
-                    /*DEBUG*/ appendout('./test/debugout.txt', '\nUtilizing existing brother pseudoclass for extention, as nothing matches: \n' + atRule.parent.selector + ' pseudo-' + extTgtPseudo);
+                    // /*DEBUG*/ appendout('./test/debugout.txt', '\nUtilizing existing brother pseudoclass for extention, as nothing matches: \n' + atRule.parent.selector + ' pseudo-' + extTgtPseudo);
                     selectorRetainer = backFirstTargetNode.selector;
                     backFirstTargetNode.selector = selectorRetainer + ', ' + formPseudoSelector(originSels, extTgtPseudo).join(', ');
                   } else {
@@ -166,11 +166,11 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
                     pseudoTarget = findBrotherPseudoClass(atRule.parent, extTgtPseudo);
                     if (pseudoTarget.bool) {
                       //utilize existing pseudoclass for extention
-                      /*DEBUG*/ appendout('./test/debugout.txt', '\nUtilizing existing pseudoclass for extention:\n' + pseudoTarget);
+                      // /*DEBUG*/ appendout('./test/debugout.txt', '\nUtilizing existing pseudoclass for extention:\n' + pseudoTarget);
                       safeCopyDeclarations(backFirstTargetNode, pseudoTarget.node);
                     } else {
                       //create additional nodes below existing for each instance of pseudos
-                      /*DEBUG*/ appendout('./test/debugout.txt', '\nUtilizing new pseudoclass for extention, as nothing matches: \n' + atRule.parent.selector + ' pseudo-' + extTgtPseudo);
+                      // /*DEBUG*/ appendout('./test/debugout.txt', '\nUtilizing new pseudoclass for extention, as nothing matches: \n' + atRule.parent.selector + ' pseudo-' + extTgtPseudo);
                       var newNode = postcss.rule();
                       newNode.semicolon = atRule.semicolon;
                       safeCopyDeclarations(backFirstTargetNode, newNode);
@@ -186,7 +186,7 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
         } //end of if hasMediaAncestor
         if (!couldExtend) {
           result.warn('\'' + atRule.params + '\', has not been defined, so cannot be extended');
-          /*DEBUG*/ appendout('./test/debugout.txt', '\n\'' + atRule.params + '\' has not been defined!!!');
+          // /*DEBUG*/ appendout('./test/debugout.txt', '\n\'' + atRule.params + '\' has not been defined!!!');
         }
       }
       if (!atRule.parent.nodes.length || (atRule.parent.nodes.length === 1 && atRule.parent.type !== 'root')) {
@@ -237,10 +237,10 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
       nodeOrigin.nodes.forEach(function(node) {
         if (isBadDefinitionNode(node)) return;
         if (nodeDest.some(function(decl) { return decl.prop === node.prop; })) {
-          /*DEBUG*/ appendout('./test/debugout.txt', '\nsafeIgnored : ' + node + ' for ' + nodeDest.selector);
+          // /*DEBUG*/ appendout('./test/debugout.txt', '\nsafeIgnored : ' + node + ' for ' + nodeDest.selector);
           return;
         }
-        /*DEBUG*/ appendout('./test/debugout.txt', '\nnodeDest Nodes:\n' + nodeDest.nodes);
+        // /*DEBUG*/ appendout('./test/debugout.txt', '\nnodeDest Nodes:\n' + nodeDest.nodes);
         var clone = node.clone();
         //For lack of a better way to analyse how much tabbing is required:
         if (nodeOrigin.parent === nodeDest.parent) {
@@ -272,7 +272,7 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
           if (node !== nodeOrigin && selectorAccumulator.length === node.selectors.length) {
             seldiff = seldiff.concat(selectorAccumulator);
             seldiff = uniqreq(seldiff);
-            /*DEBUG*/ appendout('./test/debugout.txt', '\nseldiff : ' + seldiff + '\n\tBetween:\n' + node.selectors + '\n\tand:\n' + selectorAccumulator);
+            // /*DEBUG*/ appendout('./test/debugout.txt', '\nseldiff : ' + seldiff + '\n\tBetween:\n' + node.selectors + '\n\tand:\n' + selectorAccumulator);
             if (seldiff.length === selectorAccumulator.length) {
               foundNode = node;
               return true;

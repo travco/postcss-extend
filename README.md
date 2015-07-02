@@ -176,7 +176,7 @@ Resolves to:
   }
 }
 ```
-Notice how `.spud` only takes in declarations it doesn't already have from `.potato`. Extending will never override declarations already present while copying. Additionally, notice how `.spud` extends `.potato`'s pseudo inside the media scope just like before. That's because it is scope-conscious (especially while in an `@media`).
+Notice how `.spud` only takes in declarations it doesn't already have from `.potato`. Extending will never override declarations already present while copying. Additionally, notice how `.spud` extends `.potato`'s pseudo inside the media scope by tacking onto the target rule, just like before. That's because it is scope-conscious (especially while in an `@media`).
 
 ##### External Pseudo classes
 

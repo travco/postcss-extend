@@ -36,7 +36,6 @@ function p(css) {
 
 test('@define-placeholder basically works', function(t) {
   compareFixtures(t, 'basic');
-  compareFixtures(t, 'readme-examples');
   t.end();
 });
 

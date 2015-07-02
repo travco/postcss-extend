@@ -1,4 +1,5 @@
 *.log
+TEMPFILE.*
 node_modules
 test/fixtures/*.actual.css
 test/*.txt
