@@ -10,6 +10,11 @@ Use this plugin to:
 - Pull-in declarations in rulesets (most) anywhere in the doc (by a selector) from within `@media` statements (semi-safely)
 - Extend existing media-conscious rulesets, even if some of them are within `@media` statements.
 
+
+[Installation](https://github.com/travco/postcss-simple-extend#installation) | [Usage](https://github.com/travco/postcss-simple-extend#usage) | [Getting it Working](https://github.com/travco/postcss-simple-extend#getting-it-working-with-postcss) | [Quirks](https://github.com/travco/postcss-simple-extend#quirks)
+--- | --- | --- | ---
+
+
 The logical statement of *this* `@extend` is to 'allow my parent rule to use the declarations of what I extend'.
 The functionality is intended to somewhat-mirror Sass's `@extend` with `%` placeholders (a.k.a. "silent classes") and real rules.
 Unlike Sass's `@extend`, however, this plugin (among other things) *does not allow you to extend into selector sequences*: i.e. if you want to `@extend a`, it will not go off and try to extend: 
@@ -56,6 +61,17 @@ npm install postcss-simple-extend --save
 
 
 ## Usage
+
+- [Defining Placeholders](https://github.com/travco/postcss-simple-extend#extending-rules-or-placeholders)
+  - [The '%' placeholder](https://github.com/travco/postcss-simple-extend#the--silent-placeholder)
+- [Extending Rules or Placeholders](https://github.com/travco/postcss-simple-extend#extending-rules-or-placeholders)
+  - [Extending Pseudo Classes and Pseudo Elements](https://github.com/travco/postcss-simple-extend#extending-pseudo-classes-and-pseudo-elements)
+  - [Extending with @media](https://github.com/travco/postcss-simple-extend#extending-with-media)
+    - [Simple declaration-pulling](https://github.com/travco/postcss-simple-extend#simple-declaration-pulling)
+    - [External Pseudo classes](https://github.com/travco/postcss-simple-extend#external-pseudo-classes)
+    - [Extending something inside @media (on the outside looking in)](https://github.com/travco/postcss-simple-extend#extending-something-inside-media-on-the-outside-looking-in)
+    - [Extending something in an @media while inside an @media](https://github.com/travco/postcss-simple-extend#extending-something-in-an-media-while-inside-an-media)
+- [Chaining @extends, or Extention-Recursion](https://github.com/travco/postcss-simple-extend#chaining-extends-or-extention-recursion)
 
 ### Defining Placeholders
 
@@ -312,9 +328,9 @@ Resolves to:
 ```
 Doesn't that take a lot of computation to do though? Well, not really since it's not 'true' recursion. Since we're tacking-on selectors every rule is a living record of everything that has extended it, and if we're not tacking on selectors - we're copying everything we need from the other rule. Thus, we only need to go through the CSS doc once, top to bottom. ***There is an edge case*** when *copying declarations* from something that hasn't had a chance to `@extend` yet, because it's selector won't exist on the things it plans on extending (proper recursion is a possible planned feature).  '`@extend` chaining' as it is at present - applies to everything aforementioned, so be wary (or enjoy it).
 
-### Plug it into PostCSS
+## Getting It Working with PostCSS
 
-Plug it in just like any other PostCSS plugin. There are no frills and no options, so integration should be straightforward. For example (as a node script):
+Plug it in just like any other [PostCSS](https://github.com/postcss/postcss) plugin. There are no frills and no options, so integration should be straightforward. For example (as a node script):
 
 ```js
 var fs = require('fs');
@@ -333,3 +349,10 @@ console.log(outputCss);
 ```
 
 Or take advantage of [any of the myriad of other ways to consume PostCSS](https://github.com/postcss/postcss#usage), and follow the plugin instructions they provide.
+
+## Quirks
+As with any piece of code it's got a few quirks. Behaviors that are not intended, and not enforced, and may disappear (or be forcively altered) with the next release, so it's useful to be aware of them.
+
+**Order of Processing** : Currently, all of the `@extend`s being processed are run in a sequential manner from the top to the bottom of the doc. Although this keeps thing relatively snappy it does cause edge case issues, as noted in [Usage: Chaining Extends](https://github.com/travco/postcss-simple-extend#chaining-extends-or-extention-recursion).
+
+**Non-logical means of extention for `@media`** : As anyone who's aware of the complications discussed in the [SASS issue about extending across `@media`](https://github.com/sass/sass/issues/1050) would know. There is no way (known) of extending when `@media` rules are involved that is both 'clean and simple' and 'logically correct with how `@extend` is used elsewhere'. The way this plugin operates, and it's logical meaning is a blatant compromise so that it has both common use cases, and is easier to implement. AKA: we went the K.I.S.S. route.
