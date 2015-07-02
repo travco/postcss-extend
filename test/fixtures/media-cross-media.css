@@ -1,23 +1,19 @@
+@media (width < 600px) {
+  .spud {
+    @extend .potato;
+    background: black;
+    outline: dashed;
+  }
+}
+
 @media (width > 600px) {
   .potato {
     @extend .spud;
-    color: blue;
     float: left;
     font-family: sans-serif;
-    font-weight: bold;
   }
 
   .potato:first {
     float: center;
   }
 }
-
-@media (width < 600px) {
-  .spud {
-    @extend .potato;
-    color: red;
-    background: black;
-    outline: dashed;
-  }
-}
-

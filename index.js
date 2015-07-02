@@ -92,13 +92,6 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
             var tgtAccumulate = targetNode.selectors;
 
             for (var n = 0; n < tgtSaved.length; n++) {
-
-              //Add existing selector (that we're working with) to output list
-              // if (!tgtAccumulate) {
-              //   tgtAccumulate = [ targetNode.selectors[n] ];
-              // } else {
-              //   tgtAccumulate.push(targetNode.selectors[n]);
-              // }
               // Operate on normal extendables
               if (atRule.params === tgtSaved[n]) {
                 /*DEBUG*/ appendout('./test/debugout.txt', '\nfound and extending : ' + tgtSaved[n] + ' : ' + originSels);
@@ -111,21 +104,12 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
                 var tgtBase = tgtSaved[n].substring(0, tgtSaved[n].indexOf(':'));
                 var tgtPseudo = tgtSaved[n].substring(tgtSaved[n].indexOf(':'), tgtSaved[n].length);
                 if (atRule.params === tgtBase) {
-                  //check for prexisting pseudo classes before tacking
-                  /*DEEP DEBUG*/ appendout('./test/debugout.txt', '\nCalling root-level findBrotherPseudoClass with :\n' + atRule.parent + ',\n' + tgtPseudo);
-                  pseudoTarget = findBrotherPseudoClass(atRule.parent, tgtPseudo);
-                  if (pseudoTarget.bool) {
-                    //utilize existing pseudoclass for extention
-                    /*DEBUG*/ appendout('./test/debugout.txt', '\nUtilizing existing pseudoclass for extention:\n' + pseudoTarget);
-                    safeCopyDeclarations(targetNode, pseudoTarget.node);
-                  } else {
-                    //tack onto target node
-                    /*DEBUG*/ appendout('./test/debugout.txt', '\nfound and extending : ' + tgtSaved[n].substring(0, tgtSaved[n].indexOf(':')) + ' :\n' + tgtBase + ' (' + tgtPseudo + ')');
+                  //tack onto target node
+                  /*DEBUG*/ appendout('./test/debugout.txt', '\nfound and extending : ' + tgtSaved[n].substring(0, tgtSaved[n].indexOf(':')) + ' :\n' + tgtBase + ' (' + tgtPseudo + ')');
 
-                    /*DEBUG*/ appendout('./test/debugout.txt', '\nCalling formPseudoSelector with (\n' + originSels + ',\n' + tgtPseudo);
-                    tgtAccumulate = tgtAccumulate.concat(formPseudoSelector(originSels, tgtPseudo));
-                    /*DEBUG*/ appendout('./test/debugout.txt', '\nCombined selectors :\n' + tgtAccumulate);
-                  }
+                  /*DEBUG*/ appendout('./test/debugout.txt', '\nCalling formPseudoSelector with (\n' + originSels + ',\n' + tgtPseudo);
+                  tgtAccumulate = tgtAccumulate.concat(formPseudoSelector(originSels, tgtPseudo));
+                  /*DEBUG*/ appendout('./test/debugout.txt', '\nCombined selectors :\n' + tgtAccumulate);
                   couldExtend = true;
                 }
               }//END OF pseudo root-extentions
@@ -140,51 +124,65 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
           });
         //hasMediaAncestor === true: ---------------
         } else {
-          //Work by copying the declarations of our target rule
           /*DEBUG*/ appendout('./test/debugout.txt', '\nAttempting to fetch declarations for ' + atRule.params + '...');
-
-          css.eachRule(function(targetNode) {
-            if (targetNode.selectors.indexOf(atRule.params) !== -1) {
-              if (targetNode.parent === atRule.parent.parent) {
-                /*DEBUG*/ appendout('./test/debugout.txt', '\n...tacking onto targetNode :' + targetNode);
-                selectorRetainer = targetNode.selector;
-                targetNode.selector = selectorRetainer + ', ' + originSels.join(', ');
+          var backFirstTargetNode;
+          var targetNodeArray = [];
+          css.eachRule(function(subRule) {
+            //create a back-is-top stack so that we can efficiently operate on nodes in reverse
+            //thus retaining priority when copying declarations if there are multiple matches
+            if (!hasMediaAncestor(subRule) || subRule.parent === atRule.parent.parent) {
+              targetNodeArray.push(subRule);
+            } else {
+              /*DEBUG*/ appendout('./test/debugout.txt', '\n\'' + atRule.params + '\' ignored possible target in another @media : \n' + subRule);
+            }
+          }); //end of each rule
+          while (targetNodeArray.length > 0) {
+            backFirstTargetNode = targetNodeArray.pop();
+            if (backFirstTargetNode.selectors.indexOf(atRule.params) !== -1) {
+              //In scope, tack on selector to target rule
+              if (backFirstTargetNode.parent === atRule.parent.parent) {
+                /*DEBUG*/ appendout('./test/debugout.txt', '\n...tacking onto backFirstTargetNode :' + backFirstTargetNode);
+                selectorRetainer = backFirstTargetNode.selector;
+                backFirstTargetNode.selector = selectorRetainer + ', ' + originSels.join(', ');
+              //Out of scope, direcly copy declarations
               } else {
-                /*DEBUG*/ appendout('./test/debugout.txt', '\n...grabbing targetNode :\n' + targetNode);
-                safeCopyDeclarations(targetNode, atRule.parent);
+                /*DEBUG*/ appendout('./test/debugout.txt', '\n...grabbing backFirstTargetNode :\n' + backFirstTargetNode);
+                safeCopyDeclarations(backFirstTargetNode, atRule.parent);
               }
               couldExtend = true;
             } else {
               //Pull from pseudo-elements of target nodes (thus extending them)
-              for (var n = 0; n < targetNode.selectors.length; n++) {
-                var tgtBase = targetNode.selectors[n].substring(0, targetNode.selectors[n].indexOf(':'));
-                var tgtPseudo = targetNode.selectors[n].substring(targetNode.selectors[n].indexOf(':'), targetNode.selectors[n].length);
-                if (targetNode.selectors[n].indexOf(':') !== -1 && tgtBase === atRule.params) {
-                  //check for prexisting pseudo classes before making one
-                  pseudoTarget = findBrotherPseudoClass(atRule.parent, tgtPseudo);
-                  if (pseudoTarget.bool) {
-                    //utilize existing pseudoclass for extention
-                    /*DEBUG*/ appendout('./test/debugout.txt', '\nUtilizing existing pseudoclass for extention:\n' + pseudoTarget);
-                    safeCopyDeclarations(targetNode, pseudoTarget.node);
-                  } else if (targetNode.parent === atRule.parent.parent) {
+              for (var m = 0; m < backFirstTargetNode.selectors.length; m++) {
+                var extTgtBase = backFirstTargetNode.selectors[m].substring(0, backFirstTargetNode.selectors[m].indexOf(':'));
+                var extTgtPseudo = backFirstTargetNode.selectors[m].substring(backFirstTargetNode.selectors[m].indexOf(':'), backFirstTargetNode.selectors[m].length);
+                if (backFirstTargetNode.selectors[m].indexOf(':') !== -1 && extTgtBase === atRule.params) {
+                  if (backFirstTargetNode.parent === atRule.parent.parent) {
                     //Use Tacking onto exiting selectors instead of new creation
-                    /*DEBUG*/ appendout('./test/debugout.txt', '\nUtilizing existing brother pseudoclass for extention, as nothing matches: \n' + atRule.parent.selector + ' pseudo-' + tgtPseudo);
-                    selectorRetainer = targetNode.selector;
-                    targetNode.selector = selectorRetainer + ', ' + formPseudoSelector(originSels, tgtPseudo).join(', ');
+                    /*DEBUG*/ appendout('./test/debugout.txt', '\nUtilizing existing brother pseudoclass for extention, as nothing matches: \n' + atRule.parent.selector + ' pseudo-' + extTgtPseudo);
+                    selectorRetainer = backFirstTargetNode.selector;
+                    backFirstTargetNode.selector = selectorRetainer + ', ' + formPseudoSelector(originSels, extTgtPseudo).join(', ');
                   } else {
-                    //create additional nodes below existing for each instance of pseudos
-                    /*DEBUG*/ appendout('./test/debugout.txt', '\nUtilizing new pseudoclass for extention, as nothing matches: \n' + atRule.parent.selector + ' pseudo-' + tgtPseudo);
-                    var newNode = postcss.rule();
-                    newNode.semicolon = atRule.semicolon;
-                    safeCopyDeclarations(targetNode, newNode);
-                    newNode.selector = formPseudoSelector(atRule.parent.selectors, tgtPseudo).join(', ');
-                    atRule.parent.parent.insertAfter(atRule.parent, newNode);
+                    //check for prexisting pseudo classes before making one
+                    pseudoTarget = findBrotherPseudoClass(atRule.parent, extTgtPseudo);
+                    if (pseudoTarget.bool) {
+                      //utilize existing pseudoclass for extention
+                      /*DEBUG*/ appendout('./test/debugout.txt', '\nUtilizing existing pseudoclass for extention:\n' + pseudoTarget);
+                      safeCopyDeclarations(backFirstTargetNode, pseudoTarget.node);
+                    } else {
+                      //create additional nodes below existing for each instance of pseudos
+                      /*DEBUG*/ appendout('./test/debugout.txt', '\nUtilizing new pseudoclass for extention, as nothing matches: \n' + atRule.parent.selector + ' pseudo-' + extTgtPseudo);
+                      var newNode = postcss.rule();
+                      newNode.semicolon = atRule.semicolon;
+                      safeCopyDeclarations(backFirstTargetNode, newNode);
+                      newNode.selector = formPseudoSelector(atRule.parent.selectors, extTgtPseudo).join(', ');
+                      atRule.parent.parent.insertAfter(atRule.parent, newNode);
+                    }
                   }
                   couldExtend = true;
                 }
               }
             }
-          }); //end of each rule
+          }
         } //end of if hasMediaAncestor
         if (!couldExtend) {
           result.warn('\'' + atRule.params + '\', has not been defined, so cannot be extended');

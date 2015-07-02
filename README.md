@@ -1,68 +1,67 @@
-# postcss-simple-extend [![Build Status](https://travis-ci.org/davidtheclark/postcss-simple-extend.svg?branch=master)](https://travis-ci.org/davidtheclark/postcss-simple-extend)
+# (A fork of) postcss-simple-extend [![Build Status](https://travis-ci.org/davidtheclark/postcss-simple-extend.svg?branch=master)](https://travis-ci.org/davidtheclark/postcss-simple-extend)
 
-**A [PostCSS](https://github.com/postcss/postcss) plugin that enables you to extend placeholder selectors in CSS.**
+**A [PostCSS](https://github.com/postcss/postcss) plugin that trys to minimize the number of repeat-selectors and rules you write in CSS.**
 
-Use this plugin to define a rule set with an abstract, extendable selector — a "placeholder selector" — to which you can, later on, add concrete selectors from other rule sets.
 
-The functionality should mirror Sass's `@extend` with `%` placeholders (a.k.a. "silent classes").
-Unlike Sass's `@extend`, however, *this plugin does not enable you to extend real selectors*: i.e. you cannot `@extend .classname` or `@extend ul > li + li > span a`.
-That key difference makes this plugin *much* more simple, and therefore much less dangerous.
-Many of the concerns people have with Sass's `@extend`, the problems that can arise from its use, simply do not apply to this, more *simple* version. Smart Sass users often recommend to only ever `@extend` placeholders (cf. [Harry Robert](http://csswizardry.com/2014/01/extending-silent-classes-in-sass/) and [Hugo Giraudel](http://sass-guidelin.es/#extend)): *with this plugin, that recommendation is enforced*.
+
+Use this plugin to:
+- Define an 'silent' extendable selector — a "placeholder selector" — to which you can (from anywhere in the doc), add concrete selectors from other rule sets.
+- Add concrete selectors from one rule (containing the `@extend`) to all rule sets with the selector specified (or a pseudo class of the one specified).
+- Pull-in declarations in rulesets (most) anywhere in the doc (by a selector) from within `@media` statements (semi-safely)
+- Extend existing media-conscious rulesets, even if some of them are within `@media` statements.
+
+The logical statement of *this* `@extend` is to 'allow my parent rule to use the declarations of what I extend'.
+The functionality is intended to somewhat-mirror Sass's `@extend` with `%` placeholders (a.k.a. "silent classes") and real rules.
+Unlike Sass's `@extend`, however, this plugin (among other things) *does not allow you to extend into selector sequences*: i.e. if you want to `@extend a`, it will not go off and try to extend: 
+```css
+#admin .tabbar a {
+  font-weight: bold;
+}
+```
+*Nor* will trying to `@extend a:hover` match:
+```css
+.comment a.user:hover {
+  color: red;
+}
+```
+
+It (currently) will not try to extend selector sequences with only a base-piece to work with, i.e. trying to `@extend .never` will not attempt to extend: 
+```css
+.never li:first {
+  color: red;
+}
+/*Nor*/
+.never.ever {
+color: blue;
+}
+```
+(This is possibly an upcoming behavior)
+
+Arguably, these limitations make this plugin both less dangerous than SASS's @extend, and enforce more (obviously-)predictable behaviors. However, many of SASS @extend's other behaviors have been kept, or altered in such a way to allow ease of use, but not necessarily the same level of strict logical extension.
+In regards to the concerns people have with Sass's `@extend`, and the problems that can arise from its use, many do not apply to this stripped-out version. However, it is by no means foolproof, and Smart Sass users often recommend to only ever `@extend` placeholders (cf. [Harry Robert](http://csswizardry.com/2014/01/extending-silent-classes-in-sass/) and [Hugo Giraudel](http://sass-guidelin.es/#extend)): *with this plugin, that recommendation is not enforced, but syntactically set apart*.
 
 **`postcss-simple-extend` is compatible with PostCSS v4.1+.**
 
-> **A Note on "mixins" & "extends"**: Mixins copy declarations from an abstract definition into a concrete rule set. Extends clone a concrete rule set's selector(s) and add them to an abstract placeholder selector. *This* plugin enables extends. If you would like to use mixins, as well — or instead — have a look at [`postcss-mixins`](https://github.com/postcss/postcss-mixins).
+> **A Note on "mixins" & "extends"**: Mixins copy declarations from an abstract definition into a concrete rule set. These @extends (normally) clone a concrete rule set's selector(s) and add them to an abstract placeholder selector, or another existing rule. *This* plugin enables extends. If you would like to use mixins, as well — or instead — have a look at [`postcss-mixins`](https://github.com/postcss/postcss-mixins).
 
-## Installation
+## ~~Installation~~
+This is just a fork, not an NPM module yet :(, it's also still in development, the origin is here, use it in the mean-time:
 
 ```
 npm install postcss-simple-extend --save
 ```
 
+
 **Public Service Announcement**: Because of [an issue with `postcss-nested`](https://github.com/postcss/postcss-nested/issues/11), if you are trying to use *both* `postcss-nested` and this plugin, you need to *use this plugin first*.
 
-## Example Input-Output
-
-Input:
-```css
-@define-placeholder gigantic {
-  font-size: 40em;
-}
-
-.foo {
-  @extend gigantic;
-  color: red;
-}
-
-.bar {
-  @extend gigantic;
-  color: orange;
-}
-```
-
-Output:
-```css
-.foo,
-.bar {
-  font-size: 40em;
-}
-
-.foo {
-  color: red;
-}
-
-.bar {
-  color: orange;
-}
-```
 
 ## Usage
 
-### Define Your Placeholder
+### Defining Placeholders
 
-With `@define-placeholder`, you associate a rule set with a placeholder selector, which you will later extend with concrete selectors.
+With `@define-placeholder`, you associate a rule set with a placeholder selector, which you will later extend with concrete selectors. It (and its other aliases) can only be extended if it's already been declared in the document.
 
-You can also use `@define-extend` or `@simple-extend-define`, if either of those better fits your mind and situation.
+You can also use it's aliases: `@define-extend` or `@simple-extend-define`.
 
 ```css
 @define-placeholder simple-list {
@@ -76,30 +75,244 @@ You can also use `@define-extend` or `@simple-extend-define`, if either of those
 
 `@define-placeholder` at-rules, and the placeholder names (e.g. `simple-list`, above), will be removed entirely from the generated CSS, replaced by the selectors you've added via `@extend` (see example above).
 
-There are some defining guidelines to obey (violations should log warnings):
-- Definitions must occur at the root level (i.e. not inside statements, such as rule sets or `@media` statements).
-- Definitions should only contain declarations and comments: no statements.
+##### The '%' (silent) placeholder
 
-### Extend a Placeholder (Add Selectors to It)
+The '%' placeholder acts in exactly the same way as `@define-placeholder` and its aliases, with the two exceptions. One, that it doesn't need to be declared before it is extended. Two, it needs to be specifically targeted in the extend, for example: `@extend %simple-list`.
+
+(`@define-placeholder`'s limitations are an originally unintended feature, kept for its possible usefulness).
+
+Additionally, all definitions should only contain declarations and comments: no statements (violations should log warnings).
+
+### Extending Rules or Placeholders
 
 Use the at-rule `@extend` within a rule set to add that rule set's selector(s) to a placeholder (which was defined via `@define-placeholder`).
 
-You can also use `@simple-extend-addto`, if that better fits your mind and situation.
+You can also use its aliases `@simple-extend` or `@simple-extend-addto`.
 
 ```css
 .list-i-want-to-be-simple {
   @extend simple-list;
-  /* or @simple-extend-addto simple-list; */
   font-size: 40em;
 }
 ```
+Both rules and placeholders are extended in much the same fashion, the only real difference is that placeholders can be named most anything, whereas rules need to be extended via the same syntax in the css. For example, to extend a 'foo' class it'd be `@extend .foo`
 
-And there are some `@extend` guidelines to obey (violations should log warnings):
-- `@extend` must *not* occur at the root level: only inside rule sets.
-- `@extend` must *not* occur within `@media` statements. (The generated code almost certainly would not match your intention.)
-- The placeholder must be defined *before* `@extend` can refer to it.
+There is only one overarching `@extend` guideline to obey: `@extend` must *not* occur at the root level, it only can be used inside rule sets.
 
-### Plug it in to PostCSS
+#### Extending Pseudo Classes and Pseudo Elements
+
+Whenever extending a rule or placeholder, you are also automatically trying to extend any pseudo classes or elements that have *exactly* what you selected (before their `:`). For example:
+```css
+.potato {
+  color: white;
+}
+
+.potato:first-child,
+.potato::after {
+  background: brown;
+}
+
+#superfun {
+  @extend .potato;
+}
+```
+Resolves to:
+```css
+.potato, #superfun {
+  color: white;
+}
+
+.potato:first-child, .potato::after, #superfun:first-child, #superfun::after {
+  background: brown;
+}
+```
+Make note that `#superfun` deletes itself, because otherwise it would have been empty brackets.
+
+#### Extending with `@media`
+
+The bridging behavior of this plugin is by far it's most dangerous, despite the steps to keep it relatively sane. Be mindful.
+The logical statement of *this* `@extend` is to 'allow my parent rule to use the declarations of what I extend'. Thus, when within an @media rule, it's behavior takes on the contingency of the rule, and instead of tacking on it's parent's selectors  to rules it extends (thus using their declarations), it directly brings in the declarations. 
+
+##### Simple declaration-pulling
+
+Trying to extend a rule outside an `@media` from the inside is fairly straight-forward. For example:
+```css
+.potato {
+  color: white;
+  outline: brown;
+  font-family: sans-serif;
+}
+
+@media (width > 600px) {
+  .potato:first {
+    float: center;
+  }
+  
+  .spud {
+    @extend .potato;
+    color: red;
+    font-size: 4em;
+  }
+}
+```
+Resolves to:
+```css
+.potato {
+  color: white;
+  outline: brown;
+  font-family: sans-serif;
+}
+
+@media (width > 600px) {
+  .potato:first, .spud:first {
+    float: center;
+  }
+  
+  .spud {
+    color: red;
+    font-size: 4em;
+    outline: brown;
+    font-family: sans-serif;
+  }
+}
+```
+Notice how `.spud` only takes in declarations it doesn't already have from `.potato`. Extending will never override declarations already present while copying. Additionally, notice how `.spud` extends `.potato`'s pseudo inside the media scope just like before. That's because it is scope-conscious (especially while in an `@media`).
+
+##### External Pseudo classes
+
+So what does it do when pseudo classes of the extended rule are also outside `@media`?
+```css
+.potato {
+  float: left;
+}
+
+.potato:first, .potato:first-child {
+  float: center;
+}
+
+@media (width > 600px) {
+  .spud {
+    @extend .potato;
+    font-weight: bold;
+    color: red;
+  }
+
+  .spud:first {
+    background: purple;
+  }
+}
+```
+Resolves to:
+```css
+.potato {
+  float: left;
+}
+
+.potato:first, .potato:first-child {
+  float: center;
+}
+
+@media (width > 600px) {
+  .spud {
+    font-weight: bold;
+    color: red;
+    float: left;
+  }
+  .spud:first-child {
+    float: center;
+  }
+
+  .spud:first {
+    background: purple;
+    float: center;
+  }
+}
+```
+First let's notice that the pseudo class `.spud:first-child` (which wasn't within `@media` originally) is created with a copy of `.potato:first-child`'s declaration. Meanwhile, `.spud:first` was already within the `@media` rule, and it took on the extra declaration. If there is a rule within the `@media` with exactly the same selectors as what it would create, it will just pull in declarations. Keep in mind, the same ideas apply here while 'pulling in' declarations, it copies, but won't replace.
+
+##### Extending something inside `@media` (on the outside looking in)
+
+So what if you want to extend something that's within an `@media` from the root. It's actually fairly straight-forward when you think about what that means. 
+```css
+@media (width > 600px) {
+  .spud {
+    font-weight: bold;
+    color: red;
+  }
+  .spud:first-child {
+    background: purple;
+  }
+}
+
+.sputnik {
+  @extend .spud;
+  font-weight: normal;
+  font-style: italic;
+}
+```
+Resolves to:
+```css
+@media (width > 600px) {
+  .spud, .sputnik {
+    font-weight: bold;
+    color: red;
+  }
+  .spud:first-child, .sputnik:first-child {
+    background: purple;
+  }
+}
+
+.sputnik {
+  font-weight: normal;
+  font-style: italic;
+}
+```
+Extending from the root, just like before just tacks on selectors onto target rules, even into the `@media`. This stays true to the logic of *this* version of `@extend` because it's maintaining the conditionality of the declarations within `@media`.
+
+##### Extending something in an `@media` while inside an `@media`
+
+**Don't**. It's currently directly-disallowed in code to prevent unexpected things from happening. The current expectation is that the only time majority of users would do this is when making a mistake. That expectation remains unless someone can present a solution and a logical way of handling this (not in the native CSS parser) that is also a realistic common-use case.
+
+#### Chaining `@extend`s, or extention-recursion
+
+Definately one of the more powerful features of SASS's `@extend` is here too. It does however, come with a slight caveat that it is order-agnostic. Meaning that it doesn't enforce order by only extending that which came above it, it just goes.
+```css
+.charlie {
+  @extend .delta;
+  font-weight: bold;
+}
+.alpha {
+  @extend .bravo;
+  color: red;
+}
+.bravo {
+  @extend .charlie;
+  background: blue;
+}
+.delta {
+  color: green;
+  background: gray;
+}
+```
+Resolves to:
+```css
+.charlie, .bravo, .alpha {
+  font-weight: bold;
+}
+.alpha {
+  color: red;
+}
+.bravo, .alpha {
+  background: blue;
+}
+.delta, .charlie, .bravo, .alpha {
+  color: green;
+  background: gray;
+}
+```
+Doesn't that take a lot of computation to do though? Well, not really since it's not 'true' recursion. Since we're tacking-on selectors every rule is a living record of everything that has extended it, and if we're not tacking on selectors - we're copying everything we need from the other rule. Thus, we only need to go through the CSS doc once, top to bottom. ***There is an edge case*** when *copying declarations* from something that hasn't had a chance to `@extend` yet, because it's selector won't exist on the things it plans on extending (proper recursion is a possible planned feature).  '`@extend` chaining' as it is at present - applies to everything aforementioned, so be wary (or enjoy it).
+
+### Plug it into PostCSS
 
 Plug it in just like any other PostCSS plugin. There are no frills and no options, so integration should be straightforward. For example (as a node script):
 
@@ -119,4 +332,4 @@ var outputCss = postcss()
 console.log(outputCss);
 ```
 
-Or take advantage of [any of the myriad other ways to consume PostCSS](https://github.com/postcss/postcss#usage), and follow the plugin instructions they provide.
+Or take advantage of [any of the myriad of other ways to consume PostCSS](https://github.com/postcss/postcss#usage), and follow the plugin instructions they provide.

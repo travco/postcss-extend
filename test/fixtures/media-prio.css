@@ -1,0 +1,14 @@
+@media (width < 600px) {
+  .spud {
+    @extend .foobar;
+    background: black;
+    outline: dashed;
+  }
+}
+
+.foobar {
+  font-weight: bold;
+}
+.foobar {
+  font-weight: bolder;
+}

@@ -1,0 +1,23 @@
+.potato {
+  float: left;
+}
+
+.potato:first, .potato:first-child {
+  float: center;
+}
+
+@media (width > 600px) {
+  .spud {
+    font-weight: bold;
+    color: red;
+  	float: left;
+  }
+  .spud:first-child {
+  	float: center;
+  }
+
+  .spud:first {
+    background: purple;
+  	float: center;
+  }
+}

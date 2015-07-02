@@ -67,7 +67,6 @@ test('@define-placeholder works when the addto rule set is otherwise empty', fun
 
 test('%placeholder basically works', function(t) {
   compareFixtures(t, 'basic-silent');
-  compareFixtures(t, 'readme-examples-silent');
   t.end();
 });
 
@@ -98,7 +97,6 @@ test('%placeholder works when the addto rule set is otherwise empty', function(t
 
 test('extending rules directly basically works', function(t) {
   compareFixtures(t, 'basic-direct');
-  compareFixtures(t, 'readme-examples-direct');
   t.end();
 });
 
@@ -162,7 +160,7 @@ test('recursive actions on extended pseudo-rules', function(t) {
   t.end();
 });
 
-test('intelligently utilizes existing pseudo rules at root', function(t) {
+test('doesn\'t utilize existing pseudo rules at root', function(t) {
   compareFixtures(t, 'pseudo-int-root');
   t.end();
 });
@@ -172,17 +170,33 @@ test('extending in media has (safe) pull-in behavior, and basic behavior in scop
   t.end();
 });
 
-test('extending in media has intelligent pseudo-copying behavior in-scope', function(t) {
+test('extending in media retains priority of declarations that are pulled', function(t) {
+  compareFixtures(t, 'media-prio');
+  t.end();
+});
+
+test('extending in media doesn\'t utilize existing rules in-scope', function(t) {
   compareFixtures(t, 'media-pseudo');
   t.end();
 });
+
 
 test('extending in media will create pseudo rules (in-scope) for targets out of scope', function(t) {
   compareFixtures(t, 'media-advanced-pseudo');
   t.end();
 });
 
-test('cross-media extentions pull in correctly', function(t) {
+test('extending in media uses existing rules in-scope for external targets', function(t) {
+  compareFixtures(t, 'media-pseudo-ext');
+  t.end();
+});
+
+test('extending in media perserves declaration priority of external targets', function(t) {
+  compareFixtures(t, 'media-pseudo-ext-prio');
+  t.end();
+});
+
+test('cross-media extentions pull in correctly (aka: they don\'t)', function(t) {
   compareFixtures(t, 'media-cross-media');
   t.end();
 });

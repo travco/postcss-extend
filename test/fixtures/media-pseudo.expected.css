@@ -3,7 +3,7 @@
     float: left;
   }
 
-  .potato:first, .potato:first-child, .spud:first-child {
+  .potato:first, .potato:first-child, .spud:first, .spud:first-child {
     float: center;
   }
   
@@ -14,6 +14,5 @@
 
   .spud:first {
     background: purple;
-    float: center;
   }
 }
