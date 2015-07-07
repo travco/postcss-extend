@@ -2,7 +2,7 @@
   float: left;
 }
 
-.potato:first, .potato:first-child {
+.potato:first, .potato ul:first-child {
   float: center;
 }
 
@@ -12,7 +12,7 @@
     color: red;
   	float: left;
   }
-  .spud:first-child {
+  .spud ul:first-child {
   	float: center;
   }
 

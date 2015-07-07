@@ -12,7 +12,7 @@
   color: red;
 }
 
-.spud:first-child, .sputnik:first-child {
+.spud ul:first-child, .sputnik ul:first-child {
   background: purple;
 }
 

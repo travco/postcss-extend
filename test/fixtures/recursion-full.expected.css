@@ -1,0 +1,30 @@
+.rabbittrail, .alpha {
+  font-family: serif;
+}
+
+.bravo, .alpha {
+  color: orange;
+}
+
+@media screen {
+  .spud {
+  	font-variant: small-caps;
+  }
+  .potato, .spud {
+  	background: pink;
+  	color: red;
+  	font-family: serif;
+  }
+}
+
+.alpha {
+  color: yellow;
+}
+
+.charlie, .bravo, .alpha {
+  color: red;
+}
+
+.charlie, .bravo, .alpha {
+  background: pink;
+}

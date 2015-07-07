@@ -35,7 +35,6 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
           targetNode.removeSelf();
         // /*DEBUG*/ } else {
           // /*DEBUG*/ appendout('./test/debugout.txt', '\nSifted out placeholder/silent ' + tgtSaved[i]);
-        // /*DEBUG*/ }
         }
       }
       if (selectorAccumulator) {
@@ -73,7 +72,11 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
         var originSels = atRule.parent.selectors;
         var selectorRetainer;
         var couldExtend = false;
-        var pseudoTarget = {
+        var subTarget = {
+          node: {},
+          bool: false
+        };
+        var recursableRule = {
           node: {},
           bool: false
         };
@@ -94,25 +97,38 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
             for (var n = 0; n < tgtSaved.length; n++) {
               // Operate on normal extendables
               if (atRule.params === tgtSaved[n]) {
+                recursableRule = findUnresolvedExtendChild(targetNode);
+                while (recursableRule.bool) {
+                  // /*DEBUG*/ appendout('./test/debugout.txt', '\nRecursing on: ' + recursableRule.node + '\n^^^^^^^^^^^^^^');
+                  processExtension(recursableRule.node);
+                  recursableRule = findUnresolvedExtendChild(targetNode);
+                }
                 // /*DEBUG*/ appendout('./test/debugout.txt', '\nfound and extending : ' + tgtSaved[n] + ' : ' + originSels);
 
                 tgtAccumulate = tgtAccumulate.concat(originSels);
                 // /*DEBUG*/ appendout('./test/debugout.txt', '\nCombined selectors :\n' + tgtAccumulate);
                 couldExtend = true;
-                //Operate on pseudo-elements of extendables (thus extending them)
-              } else if (tgtSaved[n].indexOf(':') !== -1) {
-                var tgtBase = tgtSaved[n].substring(0, tgtSaved[n].indexOf(':'));
-                var tgtPseudo = tgtSaved[n].substring(tgtSaved[n].indexOf(':'), tgtSaved[n].length);
+                //Operate on sub-elements of extendables (thus extending them)
+              } else if (tgtSaved[n].substring(1).search(/[\s.:#]/) + 1 !== -1) {
+                var tgtBase = tgtSaved[n].substring(0, tgtSaved[n].substring(1).search(/[\s.:#]/) + 1);
+                var tgtSub = tgtSaved[n].substring(tgtSaved[n].substring(1).search(/[\s.:#]/) + 1, tgtSaved[n].length);
                 if (atRule.params === tgtBase) {
+                  //check if target rule has unresolved extentions, then extend them
+                  recursableRule = findUnresolvedExtendChild(targetNode);
+                  while (recursableRule.bool) {
+                    // /*DEBUG*/ appendout('./test/debugout.txt', '\nRecursing on: ' + recursableRule.node + '\n^^^^^^^^^^^^^^');
+                    processExtension(recursableRule.node);
+                    recursableRule = findUnresolvedExtendChild(targetNode);
+                  }
                   //tack onto target node
-                  // /*DEBUG*/ appendout('./test/debugout.txt', '\nfound and extending : ' + tgtSaved[n].substring(0, tgtSaved[n].indexOf(':')) + ' :\n' + tgtBase + ' (' + tgtPseudo + ')');
+                  // /*DEBUG*/ appendout('./test/debugout.txt', '\nfound and extending : ' + tgtSaved[n].substring(0, tgtSaved[n].substring(1).search(/[\s.:#]/) + 1) + ' :\n' + tgtBase + ' (' + tgtSub + ')');
 
-                  // /*DEBUG*/ appendout('./test/debugout.txt', '\nCalling formPseudoSelector with (\n' + originSels + ',\n' + tgtPseudo);
-                  tgtAccumulate = tgtAccumulate.concat(formPseudoSelector(originSels, tgtPseudo));
+                  // /*DEBUG*/ appendout('./test/debugout.txt', '\nCalling formSubSelector with (\n' + originSels + ',\n' + tgtSub);
+                  tgtAccumulate = tgtAccumulate.concat(formSubSelector(originSels, tgtSub));
                   // /*DEBUG*/ appendout('./test/debugout.txt', '\nCombined selectors :\n' + tgtAccumulate);
                   couldExtend = true;
                 }
-              }//END OF pseudo root-extentions
+              }//END OF sub root-extentions
             }
             if (couldExtend) {
               // /*DEBUG*/ appendout('./test/debugout.txt', '\nStart uniqreq2 :\n' + tgtAccumulate);
@@ -139,6 +155,20 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
           while (targetNodeArray.length > 0) {
             backFirstTargetNode = targetNodeArray.pop();
             if (backFirstTargetNode.selectors.indexOf(atRule.params) !== -1) {
+              //check if rule has unresolved extentions, then extend them
+              recursableRule = findUnresolvedExtendChild(backFirstTargetNode);
+              if (recursableRule.bool) {
+                while (recursableRule.bool) {
+                  // /*DEBUG*/ appendout('./test/debugout.txt', '\nRecursing on: ' + recursableRule.node + '\n^^^^^^^^^^^^^^');
+                  processExtension(recursableRule.node);
+                  recursableRule = findUnresolvedExtendChild(backFirstTargetNode);
+                }
+                // /*DEBUG*/ appendout('./test/debugout.txt', '\n!Bumping evaluation of :' + atRule);
+                // We need to re-evaluate the current atRule, as other classes (once passed over) may now be matching. 
+                // So we do a hasty-recall and exit (only happens with badly formed css)
+                processExtension(atRule);
+                return;
+              }
               //In scope, tack on selector to target rule
               if (backFirstTargetNode.parent === atRule.parent.parent) {
                 // /*DEBUG*/ appendout('./test/debugout.txt', '\n...tacking onto backFirstTargetNode :' + backFirstTargetNode);
@@ -151,30 +181,44 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
               }
               couldExtend = true;
             } else {
-              //Pull from pseudo-elements of target nodes (thus extending them)
+              //Pull from sub-elements of target nodes (thus extending them)
               for (var m = 0; m < backFirstTargetNode.selectors.length; m++) {
-                var extTgtBase = backFirstTargetNode.selectors[m].substring(0, backFirstTargetNode.selectors[m].indexOf(':'));
-                var extTgtPseudo = backFirstTargetNode.selectors[m].substring(backFirstTargetNode.selectors[m].indexOf(':'), backFirstTargetNode.selectors[m].length);
-                if (backFirstTargetNode.selectors[m].indexOf(':') !== -1 && extTgtBase === atRule.params) {
+                var extTgtBase = backFirstTargetNode.selectors[m].substring(0, backFirstTargetNode.selectors[m].substring(1).search(/[\s.:#]/) + 1);
+                var extTgtSub = backFirstTargetNode.selectors[m].substring(backFirstTargetNode.selectors[m].substring(1).search(/[\s.:#]/) + 1, backFirstTargetNode.selectors[m].length);
+                if (backFirstTargetNode.selectors[m].substring(1).search(/[\s.:#]/) + 1 !== -1 && extTgtBase === atRule.params) {
+                  //check if target rule has unresolved extentions, then extend them
+                  recursableRule = findUnresolvedExtendChild(backFirstTargetNode);
+                  if (recursableRule.bool) {
+                    while (recursableRule.bool) {
+                      // /*DEBUG*/ appendout('./test/debugout.txt', '\nRecursing on: ' + recursableRule.node + '\n^^^^^^^^^^^^^^');
+                      processExtension(recursableRule.node);
+                      recursableRule = findUnresolvedExtendChild(backFirstTargetNode);
+                    }
+                    // /*DEBUG*/ appendout('./test/debugout.txt', '\n!Bumping evaluation of :' + atRule);
+                    // We need to re-evaluate the current atRule, as other classes (once passed over) may now be matching. 
+                    // So we do a hasty-recall and exit (only happens with badly formed css)
+                    processExtension(atRule);
+                    return;
+                  }
                   if (backFirstTargetNode.parent === atRule.parent.parent) {
                     //Use Tacking onto exiting selectors instead of new creation
-                    // /*DEBUG*/ appendout('./test/debugout.txt', '\nUtilizing existing brother pseudoclass for extention, as nothing matches: \n' + atRule.parent.selector + ' pseudo-' + extTgtPseudo);
+                    // /*DEBUG*/ appendout('./test/debugout.txt', '\nUtilizing existing brother subclass for extention, as nothing matches: \n' + atRule.parent.selector + ' sub-' + extTgtSub);
                     selectorRetainer = backFirstTargetNode.selector;
-                    backFirstTargetNode.selector = selectorRetainer + ', ' + formPseudoSelector(originSels, extTgtPseudo).join(', ');
+                    backFirstTargetNode.selector = selectorRetainer + ', ' + formSubSelector(originSels, extTgtSub).join(', ');
                   } else {
-                    //check for prexisting pseudo classes before making one
-                    pseudoTarget = findBrotherPseudoClass(atRule.parent, extTgtPseudo);
-                    if (pseudoTarget.bool) {
-                      //utilize existing pseudoclass for extention
-                      // /*DEBUG*/ appendout('./test/debugout.txt', '\nUtilizing existing pseudoclass for extention:\n' + pseudoTarget);
-                      safeCopyDeclarations(backFirstTargetNode, pseudoTarget.node);
+                    //check for prexisting sub classes before making one
+                    subTarget = findBrotherSubClass(atRule.parent, extTgtSub);
+                    if (subTarget.bool) {
+                      //utilize existing subclass for extention
+                      // /*DEBUG*/ appendout('./test/debugout.txt', '\nUtilizing existing subclass for extention:\n' + subTarget);
+                      safeCopyDeclarations(backFirstTargetNode, subTarget.node);
                     } else {
-                      //create additional nodes below existing for each instance of pseudos
-                      // /*DEBUG*/ appendout('./test/debugout.txt', '\nUtilizing new pseudoclass for extention, as nothing matches: \n' + atRule.parent.selector + ' pseudo-' + extTgtPseudo);
+                      //create additional nodes below existing for each instance of subs
+                      // /*DEBUG*/ appendout('./test/debugout.txt', '\nUtilizing new subclass for extention, as nothing matches: \n' + atRule.parent.selector + ' sub-' + extTgtSub);
                       var newNode = postcss.rule();
                       newNode.semicolon = atRule.semicolon;
                       safeCopyDeclarations(backFirstTargetNode, newNode);
-                      newNode.selector = formPseudoSelector(atRule.parent.selectors, extTgtPseudo).join(', ');
+                      newNode.selector = formSubSelector(atRule.parent.selectors, extTgtSub).join(', ');
                       atRule.parent.parent.insertAfter(atRule.parent, newNode);
                     }
                   }
@@ -233,6 +277,7 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
         return seen.hasOwnProperty(item) ? false : (seen[item] = true);
       });
     }
+
     function safeCopyDeclarations(nodeOrigin, nodeDest) {
       nodeOrigin.nodes.forEach(function(node) {
         if (isBadDefinitionNode(node)) return;
@@ -253,21 +298,37 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
         nodeDest.append(clone);
       });
     }
-    function formPseudoSelector(selArr, tgtPseudo) {
+
+    function formSubSelector(selArr, tgtSub) {
       var selectorRetainer = selArr.slice();
       for (var i = 0; i < selectorRetainer.length; i++) {
-        selectorRetainer[i] = selectorRetainer[i] + tgtPseudo;
+        selectorRetainer[i] = selectorRetainer[i] + tgtSub;
       }
       return selectorRetainer;
     }
-    function findBrotherPseudoClass(nodeOrigin, tgtPseudo) {
+
+    function findUnresolvedExtendChild(nodeOrigin) {
+      var foundNode = {};
+      var foundBool = nodeOrigin.some(function (node) {
+        if (node.type === 'atrule' && extendingAtRules.indexOf(node.name) !== -1) {
+          foundNode = node;
+          return true;
+        }
+      });
+      return {
+        node: foundNode,
+        bool: foundBool
+      };
+    }
+
+    function findBrotherSubClass(nodeOrigin, tgtSub) {
       var foundNode = {};
       var foundBool = nodeOrigin.parent.some(function (node) {
         if (node.selectors) {
           var seldiff = node.selectors;
           var selectorAccumulator = nodeOrigin.selectors;
           for (var x = 0; x < selectorAccumulator.length; x++) {
-            selectorAccumulator[x] = selectorAccumulator[x] + tgtPseudo;
+            selectorAccumulator[x] = selectorAccumulator[x] + tgtSub;
           }
           if (node !== nodeOrigin && selectorAccumulator.length === node.selectors.length) {
             seldiff = seldiff.concat(selectorAccumulator);

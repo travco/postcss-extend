@@ -1,7 +1,0 @@
-.potato:first-child, .potato:last-child, #superfun:first-child, #superfun:last-child {
-  background: brown;
-}
-
-.potato::after li, #superfun::after li {
-  background: pink;
-}

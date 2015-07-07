@@ -13,7 +13,7 @@
   color: red;
 }
 
-.spud:first-child {
+.spud ul:first-child {
   background: purple;
 }
 

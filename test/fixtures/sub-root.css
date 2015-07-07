@@ -1,9 +1,9 @@
 .potato:first-child,
-.potato:last-child {
+.potato.reaver:last-child {
   background: brown;
 }
 
-.potato::after li {
+.potato li::after {
   background: pink;
 }
 

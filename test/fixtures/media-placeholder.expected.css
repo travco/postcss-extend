@@ -1,0 +1,14 @@
+@media screen {
+  #nsa {
+    background: black;
+  }
+
+  .FTFF {
+    content: 'everything';
+    color: black;
+  }
+}
+
+.FTFF {
+  color: blue;
+}

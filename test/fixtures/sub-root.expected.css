@@ -1,0 +1,7 @@
+.potato:first-child, .potato.reaver:last-child, #superfun:first-child, #superfun.reaver:last-child {
+  background: brown;
+}
+
+.potato li::after, #superfun li::after {
+  background: pink;
+}

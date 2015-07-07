@@ -149,23 +149,33 @@ test('bidirectionally recursive behavior on direct extentions', function(t) {
   t.end();
 });
 
-test('can extend pseudo-rules of target extention', function(t) {
-  compareFixtures(t, 'pseudo-root');
+test('can extend sub-rules of target extention', function(t) {
+  compareFixtures(t, 'sub-root');
   t.end();
 });
 
-test('recursive actions on extended pseudo-rules', function(t) {
-  compareFixtures(t, 'pseudo-recursive');
+test('recursive actions on extended sub-rules', function(t) {
+  compareFixtures(t, 'sub-recursive');
   t.end();
 });
 
-test('doesn\'t utilize existing pseudo rules at root', function(t) {
-  compareFixtures(t, 'pseudo-int-root');
+test('doesn\'t utilize existing sub rules at root', function(t) {
+  compareFixtures(t, 'sub-int-root');
   t.end();
 });
 
 test('extending in media has (safe) pull-in behavior, and basic behavior in scope', function(t) {
   compareFixtures(t, 'media-basic');
+  t.end();
+});
+
+test('extending into media placeholders from root works correctly', function(t) {
+  compareFixtures(t, 'media-placeholder');
+  t.end();
+});
+
+test('placeholders in media self-remove if not called', function(t) {
+  compareFixtures(t, 'media-placeholder-mt');
   t.end();
 });
 
@@ -175,23 +185,23 @@ test('extending in media retains priority of declarations that are pulled', func
 });
 
 test('extending in media doesn\'t utilize existing rules in-scope', function(t) {
-  compareFixtures(t, 'media-pseudo');
+  compareFixtures(t, 'media-sub');
   t.end();
 });
 
 
-test('extending in media will create pseudo rules (in-scope) for targets out of scope', function(t) {
-  compareFixtures(t, 'media-advanced-pseudo');
+test('extending in media will create sub rules (in-scope) for targets out of scope', function(t) {
+  compareFixtures(t, 'media-advanced-sub');
   t.end();
 });
 
 test('extending in media uses existing rules in-scope for external targets', function(t) {
-  compareFixtures(t, 'media-pseudo-ext');
+  compareFixtures(t, 'media-sub-ext');
   t.end();
 });
 
 test('extending in media perserves declaration priority of external targets', function(t) {
-  compareFixtures(t, 'media-pseudo-ext-prio');
+  compareFixtures(t, 'media-sub-ext-prio');
   t.end();
 });
 
@@ -202,6 +212,11 @@ test('cross-media extentions pull in correctly (aka: they don\'t)', function(t) 
 
 test('has predicatable, logical ordering of selectors', function(t) {
   compareFixtures(t, 'selector-order');
+  t.end();
+});
+
+test('full recursion even in badly-formed CSS', function(t) {
+  compareFixtures(t, 'recursion-full');
   t.end();
 });
 

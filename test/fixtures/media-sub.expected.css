@@ -1,14 +1,13 @@
 @media (width > 600px) {
-  .potato {
+  .potato, .spud {
     float: left;
   }
 
-  .potato:first, .potato:first-child {
+  .potato:first, .potato ul:first-child, .spud:first, .spud ul:first-child {
     float: center;
   }
   
   .spud {
-    @extend .potato;
     font-weight: bold;
     color: red;
   }
