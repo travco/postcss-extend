@@ -164,7 +164,7 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
                   recursableRule = findUnresolvedExtendChild(backFirstTargetNode);
                 }
                 // /*DEBUG*/ appendout('./test/debugout.txt', '\n!Bumping evaluation of :' + atRule);
-                // We need to re-evaluate the current atRule, as other classes (once passed over) may now be matching. 
+                // We need to re-evaluate the current atRule, as other classes (once passed over) may now be matching.
                 // So we do a hasty-recall and exit (only happens with badly formed css)
                 processExtension(atRule);
                 return;
@@ -195,7 +195,7 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
                       recursableRule = findUnresolvedExtendChild(backFirstTargetNode);
                     }
                     // /*DEBUG*/ appendout('./test/debugout.txt', '\n!Bumping evaluation of :' + atRule);
-                    // We need to re-evaluate the current atRule, as other classes (once passed over) may now be matching. 
+                    // We need to re-evaluate the current atRule, as other classes (once passed over) may now be matching.
                     // So we do a hasty-recall and exit (only happens with badly formed css)
                     processExtension(atRule);
                     return;
