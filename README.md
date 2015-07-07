@@ -40,7 +40,7 @@ It (currently) will not try to extend selector sequences with only a base-piece 
 color: blue;
 }
 ```
-(This is possibly an upcoming behavior)
+(This is an upcoming behavior)
 
 Arguably, these limitations make this plugin both less dangerous than SASS's @extend, and enforce more (obviously-)predictable behaviors. However, many of SASS @extend's other behaviors have been kept, or altered in such a way to allow ease of use, but not necessarily the same level of strict logical extension.
 In regards to the concerns people have with Sass's `@extend`, and the problems that can arise from its use, many do not apply to this stripped-out version. However, it is by no means foolproof, and Smart Sass users often recommend to only ever `@extend` placeholders (cf. [Harry Robert](http://csswizardry.com/2014/01/extending-silent-classes-in-sass/) and [Hugo Giraudel](http://sass-guidelin.es/#extend)): *with this plugin, that recommendation is not enforced, but syntactically set apart*.
@@ -353,6 +353,6 @@ Or take advantage of [any of the myriad of other ways to consume PostCSS](https:
 ## Quirks
 As with any piece of code it's got a few quirks. Behaviors that are not intended, and not enforced, and may disappear (or be forcively altered) with the next release, so it's useful to be aware of them.
 
-**Order of Processing** : Currently, all of the `@extend`s being processed are run in a sequential manner from the top to the bottom of the doc. Although this keeps thing relatively snappy it does cause edge case issues, as noted in [Usage: Chaining Extends](https://github.com/travco/postcss-simple-extend#chaining-extends-or-extention-recursion).
+**Order of Processing** : Currently, all of the `@extend`s being processed are run in a sequential manner from the top to the bottom of the doc. Although this keeps thing relatively snappy it does cause edge case issues in inheiritance, as noted in [Usage: Chaining Extends](https://github.com/travco/postcss-simple-extend#chaining-extends-or-extention-recursion).
 
-**Non-logical means of extention for `@media`** : As anyone who's aware of the complications discussed in the [SASS issue about extending across `@media`](https://github.com/sass/sass/issues/1050) would know. There is no way (known) of extending when `@media` rules are involved that is both 'clean and simple' and 'logically correct with how `@extend` is used elsewhere'. The way this plugin operates, and it's logical meaning is a blatant compromise so that it has both common use cases, and is easier to implement. AKA: we went the K.I.S.S. route.
+**Non-logical means of extention for `@media`** : As anyone who's aware of the complications discussed in the [SASS issue about extending across `@media`](https://github.com/sass/sass/issues/1050) would know. There is no way (known) of extending when `@media` rules are involved that is both 'clean and simple' and 'logically correct with how `@extend` is used elsewhere'. The way this plugin operates, and it's logical meaning, is a blatant compromise so that it has both common use cases and easier implementation. While the current implementations will not change (without flags), such things as extending an `@media` from within an `@media` does nothing, this could possibly change in the future. 
