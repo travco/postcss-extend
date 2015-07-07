@@ -97,3 +97,19 @@ test('registers extend-without-definition warning', function(t) {
 
   t.end();
 });
+
+test('registers extend-without-target warning', function(t) {
+
+  t.test('with whitespace as the target', function(st) {
+    var extendUndefined = '.bar { @extend ; }';
+    checkForWarnings(extendUndefined, function(warnings, result) {
+      st.equal(warnings.length, 1, 'registers a warning');
+      st.ok(/at-rules need a target/.test(warnings[0].text),
+        'registers the right warning');
+      st.equal(result.css, '', 'bad extension is removed');
+      st.end();
+    });
+  });
+
+  t.end();
+});

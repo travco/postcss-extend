@@ -68,170 +68,176 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
     }
 
     function processExtension(atRule) {
-      if (!isBadExtensionLocation(atRule)) {
-        var originSels = atRule.parent.selectors;
-        var selectorRetainer;
-        var couldExtend = false;
-        var subTarget = {
-          node: {},
-          bool: false
-        };
-        var recursableRule = {
-          node: {},
-          bool: false
-        };
+      if (isBadExtension(atRule)) {
+        if (!atRule.parent.nodes.length || (atRule.parent.nodes.length === 1 && atRule.parent.type !== 'root')) {
+          atRule.parent.removeSelf();
+        } else {
+          atRule.removeSelf();
+        }
+        return;
+      }
+      var originSels = atRule.parent.selectors;
+      var selectorRetainer;
+      var couldExtend = false;
+      var subTarget = {
+        node: {},
+        bool: false
+      };
+      var recursableRule = {
+        node: {},
+        bool: false
+      };
 
-        if (!hasMediaAncestor(atRule)) {
-          css.eachRule(function(targetNode) {
-            var tgtSaved = targetNode.selectors;
-            //Strip all @define-placeholders and save slug-selectors present in tgtSaved
-            for (var i = 0; i < tgtSaved.length; i++) {
-              if (tgtSaved[i].substring(0, 20) === '@define-placeholder ') {
-                // /*DEBUG*/ appendout('./test/debugout.txt', '\nn[' + i + ']String = ' + tgtSaved[i] + ' Substring 0-20 = \'' + tgtSaved[i].substring(0, 20) + '\'');
-                tgtSaved[i] = tgtSaved[i].substring(20, (tgtSaved[i].length));
-                // /*DEBUG*/ appendout('./test/debugout.txt', '\nresString = \'' + tgtSaved[i] + '\'');
-              }
+      if (!hasMediaAncestor(atRule)) {
+        css.eachRule(function(targetNode) {
+          var tgtSaved = targetNode.selectors;
+          //Strip all @define-placeholders and save slug-selectors present in tgtSaved
+          for (var i = 0; i < tgtSaved.length; i++) {
+            if (tgtSaved[i].substring(0, 20) === '@define-placeholder ') {
+              // /*DEBUG*/ appendout('./test/debugout.txt', '\nn[' + i + ']String = ' + tgtSaved[i] + ' Substring 0-20 = \'' + tgtSaved[i].substring(0, 20) + '\'');
+              tgtSaved[i] = tgtSaved[i].substring(20, (tgtSaved[i].length));
+              // /*DEBUG*/ appendout('./test/debugout.txt', '\nresString = \'' + tgtSaved[i] + '\'');
             }
-            var tgtAccumulate = targetNode.selectors;
+          }
+          var tgtAccumulate = targetNode.selectors;
 
-            for (var n = 0; n < tgtSaved.length; n++) {
-              // Operate on normal extendables
-              if (atRule.params === tgtSaved[n]) {
+          for (var n = 0; n < tgtSaved.length; n++) {
+            // Operate on normal extendables
+            if (atRule.params === tgtSaved[n]) {
+              recursableRule = findUnresolvedExtendChild(targetNode);
+              while (recursableRule.bool) {
+                // /*DEBUG*/ appendout('./test/debugout.txt', '\nRecursing on: ' + recursableRule.node + '\n^^^^^^^^^^^^^^');
+                processExtension(recursableRule.node);
+                recursableRule = findUnresolvedExtendChild(targetNode);
+              }
+              // /*DEBUG*/ appendout('./test/debugout.txt', '\nfound and extending : ' + tgtSaved[n] + ' : ' + originSels);
+
+              tgtAccumulate = tgtAccumulate.concat(originSels);
+              // /*DEBUG*/ appendout('./test/debugout.txt', '\nCombined selectors :\n' + tgtAccumulate);
+              couldExtend = true;
+              //Operate on sub-elements of extendables (thus extending them)
+            } else if (tgtSaved[n].substring(1).search(/[\s.:#]/) + 1 !== -1) {
+              var tgtBase = tgtSaved[n].substring(0, tgtSaved[n].substring(1).search(/[\s.:#]/) + 1);
+              var tgtSub = tgtSaved[n].substring(tgtSaved[n].substring(1).search(/[\s.:#]/) + 1, tgtSaved[n].length);
+              if (atRule.params === tgtBase) {
+                //check if target rule has unresolved extentions, then extend them
                 recursableRule = findUnresolvedExtendChild(targetNode);
                 while (recursableRule.bool) {
                   // /*DEBUG*/ appendout('./test/debugout.txt', '\nRecursing on: ' + recursableRule.node + '\n^^^^^^^^^^^^^^');
                   processExtension(recursableRule.node);
                   recursableRule = findUnresolvedExtendChild(targetNode);
                 }
-                // /*DEBUG*/ appendout('./test/debugout.txt', '\nfound and extending : ' + tgtSaved[n] + ' : ' + originSels);
+                //tack onto target node
+                // /*DEBUG*/ appendout('./test/debugout.txt', '\nfound and extending : ' + tgtSaved[n].substring(0, tgtSaved[n].substring(1).search(/[\s.:#]/) + 1) + ' :\n' + tgtBase + ' (' + tgtSub + ')');
 
-                tgtAccumulate = tgtAccumulate.concat(originSels);
+                // /*DEBUG*/ appendout('./test/debugout.txt', '\nCalling formSubSelector with (\n' + originSels + ',\n' + tgtSub);
+                tgtAccumulate = tgtAccumulate.concat(formSubSelector(originSels, tgtSub));
                 // /*DEBUG*/ appendout('./test/debugout.txt', '\nCombined selectors :\n' + tgtAccumulate);
                 couldExtend = true;
-                //Operate on sub-elements of extendables (thus extending them)
-              } else if (tgtSaved[n].substring(1).search(/[\s.:#]/) + 1 !== -1) {
-                var tgtBase = tgtSaved[n].substring(0, tgtSaved[n].substring(1).search(/[\s.:#]/) + 1);
-                var tgtSub = tgtSaved[n].substring(tgtSaved[n].substring(1).search(/[\s.:#]/) + 1, tgtSaved[n].length);
-                if (atRule.params === tgtBase) {
-                  //check if target rule has unresolved extentions, then extend them
-                  recursableRule = findUnresolvedExtendChild(targetNode);
+              }
+            }//END OF sub root-extentions
+          }
+          if (couldExtend) {
+            // /*DEBUG*/ appendout('./test/debugout.txt', '\nStart uniqreq2 :\n' + tgtAccumulate);
+            //Kill off duplicate selectors
+            tgtAccumulate = uniqreq(tgtAccumulate).toString().replace(/,/g, ', ');
+            // /*DEBUG*/ appendout('./test/debugout.txt', '\nPost uniqreq2 :\n' + tgtAccumulate);
+            targetNode.selector = tgtAccumulate;
+          }
+        });
+      //hasMediaAncestor === true: ---------------
+      } else {
+        // /*DEBUG*/ appendout('./test/debugout.txt', '\nAttempting to fetch declarations for ' + atRule.params + '...');
+        var backFirstTargetNode;
+        var targetNodeArray = [];
+        css.eachRule(function(subRule) {
+          //create a back-is-top stack so that we can efficiently operate on nodes in reverse
+          //thus retaining priority when copying declarations if there are multiple matches
+          if (!hasMediaAncestor(subRule) || subRule.parent === atRule.parent.parent) {
+            targetNodeArray.push(subRule);
+          } // /*DEBUG*/ else {
+            // /*DEBUG*/ appendout('./test/debugout.txt', '\n\'' + atRule.params + '\' ignored possible target in another @media : \n' + subRule);
+          // /*DEBUG*/ }
+        }); //end of each rule
+        while (targetNodeArray.length > 0) {
+          backFirstTargetNode = targetNodeArray.pop();
+          if (backFirstTargetNode.selectors.indexOf(atRule.params) !== -1) {
+            //check if rule has unresolved extentions, then extend them
+            recursableRule = findUnresolvedExtendChild(backFirstTargetNode);
+            if (recursableRule.bool) {
+              while (recursableRule.bool) {
+                // /*DEBUG*/ appendout('./test/debugout.txt', '\nRecursing on: ' + recursableRule.node + '\n^^^^^^^^^^^^^^');
+                processExtension(recursableRule.node);
+                recursableRule = findUnresolvedExtendChild(backFirstTargetNode);
+              }
+              // /*DEBUG*/ appendout('./test/debugout.txt', '\n!Bumping evaluation of :' + atRule);
+              // We need to re-evaluate the current atRule, as other classes (once passed over) may now be matching.
+              // So we do a hasty-recall and exit (only happens with badly formed css)
+              processExtension(atRule);
+              return;
+            }
+            //In scope, tack on selector to target rule
+            if (backFirstTargetNode.parent === atRule.parent.parent) {
+              // /*DEBUG*/ appendout('./test/debugout.txt', '\n...tacking onto backFirstTargetNode :' + backFirstTargetNode);
+              selectorRetainer = backFirstTargetNode.selector;
+              backFirstTargetNode.selector = selectorRetainer + ', ' + originSels.join(', ');
+            //Out of scope, direcly copy declarations
+            } else {
+              // /*DEBUG*/ appendout('./test/debugout.txt', '\n...grabbing backFirstTargetNode :\n' + backFirstTargetNode);
+              safeCopyDeclarations(backFirstTargetNode, atRule.parent);
+            }
+            couldExtend = true;
+          } else {
+            //Pull from sub-elements of target nodes (thus extending them)
+            for (var m = 0; m < backFirstTargetNode.selectors.length; m++) {
+              var extTgtBase = backFirstTargetNode.selectors[m].substring(0, backFirstTargetNode.selectors[m].substring(1).search(/[\s.:#]/) + 1);
+              var extTgtSub = backFirstTargetNode.selectors[m].substring(backFirstTargetNode.selectors[m].substring(1).search(/[\s.:#]/) + 1, backFirstTargetNode.selectors[m].length);
+              if (backFirstTargetNode.selectors[m].substring(1).search(/[\s.:#]/) + 1 !== -1 && extTgtBase === atRule.params) {
+                //check if target rule has unresolved extentions, then extend them
+                recursableRule = findUnresolvedExtendChild(backFirstTargetNode);
+                if (recursableRule.bool) {
                   while (recursableRule.bool) {
                     // /*DEBUG*/ appendout('./test/debugout.txt', '\nRecursing on: ' + recursableRule.node + '\n^^^^^^^^^^^^^^');
                     processExtension(recursableRule.node);
-                    recursableRule = findUnresolvedExtendChild(targetNode);
+                    recursableRule = findUnresolvedExtendChild(backFirstTargetNode);
                   }
-                  //tack onto target node
-                  // /*DEBUG*/ appendout('./test/debugout.txt', '\nfound and extending : ' + tgtSaved[n].substring(0, tgtSaved[n].substring(1).search(/[\s.:#]/) + 1) + ' :\n' + tgtBase + ' (' + tgtSub + ')');
-
-                  // /*DEBUG*/ appendout('./test/debugout.txt', '\nCalling formSubSelector with (\n' + originSels + ',\n' + tgtSub);
-                  tgtAccumulate = tgtAccumulate.concat(formSubSelector(originSels, tgtSub));
-                  // /*DEBUG*/ appendout('./test/debugout.txt', '\nCombined selectors :\n' + tgtAccumulate);
-                  couldExtend = true;
+                  // /*DEBUG*/ appendout('./test/debugout.txt', '\n!Bumping evaluation of :' + atRule);
+                  // We need to re-evaluate the current atRule, as other classes (once passed over) may now be matching.
+                  // So we do a hasty-recall and exit (only happens with badly formed css)
+                  processExtension(atRule);
+                  return;
                 }
-              }//END OF sub root-extentions
-            }
-            if (couldExtend) {
-              // /*DEBUG*/ appendout('./test/debugout.txt', '\nStart uniqreq2 :\n' + tgtAccumulate);
-              //Kill off duplicate selectors
-              tgtAccumulate = uniqreq(tgtAccumulate).toString().replace(/,/g, ', ');
-              // /*DEBUG*/ appendout('./test/debugout.txt', '\nPost uniqreq2 :\n' + tgtAccumulate);
-              targetNode.selector = tgtAccumulate;
-            }
-          });
-        //hasMediaAncestor === true: ---------------
-        } else {
-          // /*DEBUG*/ appendout('./test/debugout.txt', '\nAttempting to fetch declarations for ' + atRule.params + '...');
-          var backFirstTargetNode;
-          var targetNodeArray = [];
-          css.eachRule(function(subRule) {
-            //create a back-is-top stack so that we can efficiently operate on nodes in reverse
-            //thus retaining priority when copying declarations if there are multiple matches
-            if (!hasMediaAncestor(subRule) || subRule.parent === atRule.parent.parent) {
-              targetNodeArray.push(subRule);
-            } // /*DEBUG*/ else {
-              // /*DEBUG*/ appendout('./test/debugout.txt', '\n\'' + atRule.params + '\' ignored possible target in another @media : \n' + subRule);
-            // /*DEBUG*/ }
-          }); //end of each rule
-          while (targetNodeArray.length > 0) {
-            backFirstTargetNode = targetNodeArray.pop();
-            if (backFirstTargetNode.selectors.indexOf(atRule.params) !== -1) {
-              //check if rule has unresolved extentions, then extend them
-              recursableRule = findUnresolvedExtendChild(backFirstTargetNode);
-              if (recursableRule.bool) {
-                while (recursableRule.bool) {
-                  // /*DEBUG*/ appendout('./test/debugout.txt', '\nRecursing on: ' + recursableRule.node + '\n^^^^^^^^^^^^^^');
-                  processExtension(recursableRule.node);
-                  recursableRule = findUnresolvedExtendChild(backFirstTargetNode);
-                }
-                // /*DEBUG*/ appendout('./test/debugout.txt', '\n!Bumping evaluation of :' + atRule);
-                // We need to re-evaluate the current atRule, as other classes (once passed over) may now be matching.
-                // So we do a hasty-recall and exit (only happens with badly formed css)
-                processExtension(atRule);
-                return;
-              }
-              //In scope, tack on selector to target rule
-              if (backFirstTargetNode.parent === atRule.parent.parent) {
-                // /*DEBUG*/ appendout('./test/debugout.txt', '\n...tacking onto backFirstTargetNode :' + backFirstTargetNode);
-                selectorRetainer = backFirstTargetNode.selector;
-                backFirstTargetNode.selector = selectorRetainer + ', ' + originSels.join(', ');
-              //Out of scope, direcly copy declarations
-              } else {
-                // /*DEBUG*/ appendout('./test/debugout.txt', '\n...grabbing backFirstTargetNode :\n' + backFirstTargetNode);
-                safeCopyDeclarations(backFirstTargetNode, atRule.parent);
-              }
-              couldExtend = true;
-            } else {
-              //Pull from sub-elements of target nodes (thus extending them)
-              for (var m = 0; m < backFirstTargetNode.selectors.length; m++) {
-                var extTgtBase = backFirstTargetNode.selectors[m].substring(0, backFirstTargetNode.selectors[m].substring(1).search(/[\s.:#]/) + 1);
-                var extTgtSub = backFirstTargetNode.selectors[m].substring(backFirstTargetNode.selectors[m].substring(1).search(/[\s.:#]/) + 1, backFirstTargetNode.selectors[m].length);
-                if (backFirstTargetNode.selectors[m].substring(1).search(/[\s.:#]/) + 1 !== -1 && extTgtBase === atRule.params) {
-                  //check if target rule has unresolved extentions, then extend them
-                  recursableRule = findUnresolvedExtendChild(backFirstTargetNode);
-                  if (recursableRule.bool) {
-                    while (recursableRule.bool) {
-                      // /*DEBUG*/ appendout('./test/debugout.txt', '\nRecursing on: ' + recursableRule.node + '\n^^^^^^^^^^^^^^');
-                      processExtension(recursableRule.node);
-                      recursableRule = findUnresolvedExtendChild(backFirstTargetNode);
-                    }
-                    // /*DEBUG*/ appendout('./test/debugout.txt', '\n!Bumping evaluation of :' + atRule);
-                    // We need to re-evaluate the current atRule, as other classes (once passed over) may now be matching.
-                    // So we do a hasty-recall and exit (only happens with badly formed css)
-                    processExtension(atRule);
-                    return;
-                  }
-                  if (backFirstTargetNode.parent === atRule.parent.parent) {
-                    //Use Tacking onto exiting selectors instead of new creation
-                    // /*DEBUG*/ appendout('./test/debugout.txt', '\nUtilizing existing brother subclass for extention, as nothing matches: \n' + atRule.parent.selector + ' sub-' + extTgtSub);
-                    selectorRetainer = backFirstTargetNode.selector;
-                    backFirstTargetNode.selector = selectorRetainer + ', ' + formSubSelector(originSels, extTgtSub).join(', ');
+                if (backFirstTargetNode.parent === atRule.parent.parent) {
+                  //Use Tacking onto exiting selectors instead of new creation
+                  // /*DEBUG*/ appendout('./test/debugout.txt', '\nUtilizing existing brother subclass for extention, as nothing matches: \n' + atRule.parent.selector + ' sub-' + extTgtSub);
+                  selectorRetainer = backFirstTargetNode.selector;
+                  backFirstTargetNode.selector = selectorRetainer + ', ' + formSubSelector(originSels, extTgtSub).join(', ');
+                } else {
+                  //check for prexisting sub classes before making one
+                  subTarget = findBrotherSubClass(atRule.parent, extTgtSub);
+                  if (subTarget.bool) {
+                    //utilize existing subclass for extention
+                    // /*DEBUG*/ appendout('./test/debugout.txt', '\nUtilizing existing subclass for extention:\n' + subTarget);
+                    safeCopyDeclarations(backFirstTargetNode, subTarget.node);
                   } else {
-                    //check for prexisting sub classes before making one
-                    subTarget = findBrotherSubClass(atRule.parent, extTgtSub);
-                    if (subTarget.bool) {
-                      //utilize existing subclass for extention
-                      // /*DEBUG*/ appendout('./test/debugout.txt', '\nUtilizing existing subclass for extention:\n' + subTarget);
-                      safeCopyDeclarations(backFirstTargetNode, subTarget.node);
-                    } else {
-                      //create additional nodes below existing for each instance of subs
-                      // /*DEBUG*/ appendout('./test/debugout.txt', '\nUtilizing new subclass for extention, as nothing matches: \n' + atRule.parent.selector + ' sub-' + extTgtSub);
-                      var newNode = postcss.rule();
-                      newNode.semicolon = atRule.semicolon;
-                      safeCopyDeclarations(backFirstTargetNode, newNode);
-                      newNode.selector = formSubSelector(atRule.parent.selectors, extTgtSub).join(', ');
-                      atRule.parent.parent.insertAfter(atRule.parent, newNode);
-                    }
+                    //create additional nodes below existing for each instance of subs
+                    // /*DEBUG*/ appendout('./test/debugout.txt', '\nUtilizing new subclass for extention, as nothing matches: \n' + atRule.parent.selector + ' sub-' + extTgtSub);
+                    var newNode = postcss.rule();
+                    newNode.semicolon = atRule.semicolon;
+                    safeCopyDeclarations(backFirstTargetNode, newNode);
+                    newNode.selector = formSubSelector(atRule.parent.selectors, extTgtSub).join(', ');
+                    atRule.parent.parent.insertAfter(atRule.parent, newNode);
                   }
-                  couldExtend = true;
                 }
+                couldExtend = true;
               }
             }
           }
-        } //end of if hasMediaAncestor
-        if (!couldExtend) {
-          result.warn('\'' + atRule.params + '\', has not been defined, so cannot be extended');
-          // /*DEBUG*/ appendout('./test/debugout.txt', '\n\'' + atRule.params + '\' has not been defined!!!');
         }
+      } //end of if hasMediaAncestor
+      if (!couldExtend) {
+        result.warn('\'' + atRule.params + '\', has not been defined, so cannot be extended');
+        // /*DEBUG*/ appendout('./test/debugout.txt', '\n\'' + atRule.params + '\' has not been defined!!!');
       }
       if (!atRule.parent.nodes.length || (atRule.parent.nodes.length === 1 && atRule.parent.type !== 'root')) {
         atRule.parent.removeSelf();
@@ -254,9 +260,17 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
       }
     }
 
-    function isBadExtensionLocation(atRule) {
+    function isBadExtension(atRule) {
       if (atRule.parent.type === 'root') {
         result.warn('Extending at-rules cannot occur at the root level', { node: atRule });
+        return true;
+      }
+      if (typeof atRule.params === undefined) {
+        result.warn('Extending at-rules need a target', { node: atRule });
+        return true;
+      }
+      if (atRule.params === '' || atRule.params.search(/\s*/) !== 0) {
+        result.warn('Extending at-rules need a target', { node: atRule });
         return true;
       }
     }
