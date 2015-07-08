@@ -128,6 +128,7 @@ test('registers extend-with-bad-parent warnings', function(t) {
       st.end();
     });
   });
+
   t.test('with whitespace as the parent selector', function(st) {
       var extendUndefined = '{ @extend foo; } .foo { float:left; }';
       checkForWarnings(extendUndefined, function(warnings, result) {

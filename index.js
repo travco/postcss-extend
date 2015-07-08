@@ -1,7 +1,7 @@
 'use strict';
 
 var postcss = require('postcss');
-/*DEBUG*/ var appendout = require('fs').appendFileSync;
+// /*DEBUG*/ var appendout = require('fs').appendFileSync;
 
 module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend() {
 
@@ -9,7 +9,7 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
     var definingAtRules = ['define-placeholder', 'define-extend', 'simple-extend-define'];
     var extendingAtRules = ['extend', 'simple-extend', 'simple-extend-addto'];
 
-    /*DEBUG*/ appendout('./test/debugout.txt', '\n----------------------------------------');
+    // /*DEBUG*/ appendout('./test/debugout.txt', '\n----------------------------------------');
 
     css.eachAtRule(function(atRule) {
       if (definingAtRules.indexOf(atRule.name) !== -1) {
@@ -33,8 +33,8 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
           }
         } else if (tgtSaved.length === 1) {
           targetNode.removeSelf();
-        /*DEBUG*/ } else {
-          /*DEBUG*/ appendout('./test/debugout.txt', '\nSifted out placeholder/silent ' + tgtSaved[i]);
+        // /*DEBUG*/ } else {
+          // /*DEBUG*/ appendout('./test/debugout.txt', '\nSifted out placeholder/silent ' + tgtSaved[i]);
         }
       }
       if (selectorAccumulator) {
@@ -62,7 +62,7 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
         definition.append(clone);
       });
       definition.selector = '@define-placeholder ' + atRule.params.toString();
-      /*DEBUG*/ appendout('./test/debugout.txt', '\nDeclaring placeholder : ' + definition.selector);
+      // /*DEBUG*/ appendout('./test/debugout.txt', '\nDeclaring placeholder : ' + definition.selector);
       atRule.parent.insertBefore(atRule, definition);
       atRule.removeSelf();
     }
@@ -94,9 +94,9 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
           //Strip all @define-placeholders and save slug-selectors present in tgtSaved
           for (var i = 0; i < tgtSaved.length; i++) {
             if (tgtSaved[i].substring(0, 20) === '@define-placeholder ') {
-              /*DEBUG*/ appendout('./test/debugout.txt', '\nn[' + i + ']String = ' + tgtSaved[i] + ' Substring 0-20 = \'' + tgtSaved[i].substring(0, 20) + '\'');
+              // /*DEBUG*/ appendout('./test/debugout.txt', '\nn[' + i + ']String = ' + tgtSaved[i] + ' Substring 0-20 = \'' + tgtSaved[i].substring(0, 20) + '\'');
               tgtSaved[i] = tgtSaved[i].substring(20, (tgtSaved[i].length));
-              /*DEBUG*/ appendout('./test/debugout.txt', '\nresString = \'' + tgtSaved[i] + '\'');
+              // /*DEBUG*/ appendout('./test/debugout.txt', '\nresString = \'' + tgtSaved[i] + '\'');
             }
           }
           var tgtAccumulate = targetNode.selectors;
@@ -107,20 +107,20 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
               recursableRule = findUnresolvedExtendChild(targetNode);
               if (recursableRule.bool) {
                 while (recursableRule.bool) {
-                  /*DEBUG*/ appendout('./test/debugout.txt', '\nRecursing on: ' + recursableRule.node.parent + '\n^^^^^^^^^^^^^^');
+                  // /*DEBUG*/ appendout('./test/debugout.txt', '\nRecursing on: ' + recursableRule.node.parent + '\n^^^^^^^^^^^^^^');
                   processExtension(recursableRule.node);
                   recursableRule = findUnresolvedExtendChild(targetNode);
                 }
-                /*DEBUG*/ appendout('./test/debugout.txt', '\n!Bumping evaluation of :' + atRule.parent);
+                // /*DEBUG*/ appendout('./test/debugout.txt', '\n!Bumping evaluation of :' + atRule.parent);
                 // We need to re-evaluate the current atRule, as other classes (once passed over) may now be matching.
                 // So we do a hasty-recall and exit (only happens with badly formed css)
                 processExtension(atRule);
                 return;
               }
-              /*DEBUG*/ appendout('./test/debugout.txt', '\nfound and extending : ' + tgtSaved[n] + ' : ' + originSels);
+              // /*DEBUG*/ appendout('./test/debugout.txt', '\nfound and extending : ' + tgtSaved[n] + ' : ' + originSels);
 
               tgtAccumulate = tgtAccumulate.concat(originSels);
-              /*DEBUG*/ appendout('./test/debugout.txt', '\nCombined selectors :\n' + tgtAccumulate);
+              // /*DEBUG*/ appendout('./test/debugout.txt', '\nCombined selectors :\n' + tgtAccumulate);
               couldExtend = true;
               //Operate on sub-elements of extendables (thus extending them)
             } else if (tgtSaved[n].substring(1).search(/[\s.:#]/) + 1 !== -1) {
@@ -131,37 +131,37 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
                 recursableRule = findUnresolvedExtendChild(targetNode);
                 if (recursableRule.bool) {
                   while (recursableRule.bool) {
-                    /*DEBUG*/ appendout('./test/debugout.txt', '\nRecursing on: ' + recursableRule.node.parent + '\n^^^^^^^^^^^^^^');
+                    // /*DEBUG*/ appendout('./test/debugout.txt', '\nRecursing on: ' + recursableRule.node.parent + '\n^^^^^^^^^^^^^^');
                     processExtension(recursableRule.node);
                     recursableRule = findUnresolvedExtendChild(targetNode);
                   }
-                  /*DEBUG*/ appendout('./test/debugout.txt', '\n!Bumping evaluation of :' + atRule.parent);
+                  // /*DEBUG*/ appendout('./test/debugout.txt', '\n!Bumping evaluation of :' + atRule.parent);
                   // We need to re-evaluate the current atRule, as other classes (once passed over) may now be matching.
                   // So we do a hasty-recall and exit (only happens with badly formed css)
                   processExtension(atRule);
                   return;
                 }
                 //tack onto target node
-                /*DEBUG*/ appendout('./test/debugout.txt', '\nfound and extending : ' + tgtSaved[n].substring(0, tgtSaved[n].substring(1).search(/[\s.:#]/) + 1) + ' :\n' + tgtBase + ' (' + tgtSub + ')');
+                // /*DEBUG*/ appendout('./test/debugout.txt', '\nfound and extending : ' + tgtSaved[n].substring(0, tgtSaved[n].substring(1).search(/[\s.:#]/) + 1) + ' :\n' + tgtBase + ' (' + tgtSub + ')');
 
-                /*DEBUG*/ appendout('./test/debugout.txt', '\nCalling formSubSelector with (\n' + originSels + ',\n' + tgtSub);
+                // /*DEBUG*/ appendout('./test/debugout.txt', '\nCalling formSubSelector with (\n' + originSels + ',\n' + tgtSub);
                 tgtAccumulate = tgtAccumulate.concat(formSubSelector(originSels, tgtSub));
-                /*DEBUG*/ appendout('./test/debugout.txt', '\nCombined selectors :\n' + tgtAccumulate);
+                // /*DEBUG*/ appendout('./test/debugout.txt', '\nCombined selectors :\n' + tgtAccumulate);
                 couldExtend = true;
               }
             }//END OF sub root-extentions
           }
           if (couldExtend) {
-            /*DEBUG*/ appendout('./test/debugout.txt', '\nStart uniqreq2 :\n' + tgtAccumulate);
+            // /*DEBUG*/ appendout('./test/debugout.txt', '\nStart uniqreq2 :\n' + tgtAccumulate);
             //Kill off duplicate selectors
             tgtAccumulate = uniqreq(tgtAccumulate).toString().replace(/,/g, ', ');
-            /*DEBUG*/ appendout('./test/debugout.txt', '\nPost uniqreq2 :\n' + tgtAccumulate);
+            // /*DEBUG*/ appendout('./test/debugout.txt', '\nPost uniqreq2 :\n' + tgtAccumulate);
             targetNode.selector = tgtAccumulate;
           }
         });
       //hasMediaAncestor === true: ---------------
       } else {
-        /*DEBUG*/ appendout('./test/debugout.txt', '\nAttempting to fetch declarations for ' + atRule.params + '...');
+        // /*DEBUG*/ appendout('./test/debugout.txt', '\nAttempting to fetch declarations for ' + atRule.params + '...');
         var backFirstTargetNode;
         var targetNodeArray = [];
         css.eachRule(function(subRule) {
@@ -169,9 +169,9 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
           //thus retaining priority when copying declarations if there are multiple matches
           if (!hasMediaAncestor(subRule) || subRule.parent === atRule.parent.parent) {
             targetNodeArray.push(subRule);
-          } /*DEBUG*/ else {
-            /*DEBUG*/ appendout('./test/debugout.txt', '\n\'' + atRule.params + '\' ignored possible target in another @media : \n' + subRule);
-          /*DEBUG*/ }
+          } // /*DEBUG*/ else {
+            // /*DEBUG*/ appendout('./test/debugout.txt', '\n\'' + atRule.params + '\' ignored possible target in another @media : \n' + subRule);
+          // /*DEBUG*/ }
         }); //end of each rule
         while (targetNodeArray.length > 0) {
           backFirstTargetNode = targetNodeArray.pop();
@@ -180,11 +180,11 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
             recursableRule = findUnresolvedExtendChild(backFirstTargetNode);
             if (recursableRule.bool) {
               while (recursableRule.bool) {
-                /*DEBUG*/ appendout('./test/debugout.txt', '\nRecursing on: ' + recursableRule.node.parent + '\n^^^^^^^^^^^^^^');
+                // /*DEBUG*/ appendout('./test/debugout.txt', '\nRecursing on: ' + recursableRule.node.parent + '\n^^^^^^^^^^^^^^');
                 processExtension(recursableRule.node);
                 recursableRule = findUnresolvedExtendChild(backFirstTargetNode);
               }
-              /*DEBUG*/ appendout('./test/debugout.txt', '\n!Bumping evaluation of :' + atRule.parent);
+              // /*DEBUG*/ appendout('./test/debugout.txt', '\n!Bumping evaluation of :' + atRule.parent);
               // We need to re-evaluate the current atRule, as other classes (once passed over) may now be matching.
               // So we do a hasty-recall and exit (only happens with badly formed css)
               processExtension(atRule);
@@ -192,12 +192,12 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
             }
             //In scope, tack on selector to target rule
             if (backFirstTargetNode.parent === atRule.parent.parent) {
-              /*DEBUG*/ appendout('./test/debugout.txt', '\n...tacking onto backFirstTargetNode :' + backFirstTargetNode);
+              // /*DEBUG*/ appendout('./test/debugout.txt', '\n...tacking onto backFirstTargetNode :' + backFirstTargetNode);
               selectorRetainer = backFirstTargetNode.selector;
               backFirstTargetNode.selector = selectorRetainer + ', ' + originSels.join(', ');
             //Out of scope, direcly copy declarations
             } else {
-              /*DEBUG*/ appendout('./test/debugout.txt', '\n...grabbing backFirstTargetNode :\n' + backFirstTargetNode);
+              // /*DEBUG*/ appendout('./test/debugout.txt', '\n...grabbing backFirstTargetNode :\n' + backFirstTargetNode);
               safeCopyDeclarations(backFirstTargetNode, atRule.parent);
             }
             couldExtend = true;
@@ -211,11 +211,11 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
                 recursableRule = findUnresolvedExtendChild(backFirstTargetNode);
                 if (recursableRule.bool) {
                   while (recursableRule.bool) {
-                    /*DEBUG*/ appendout('./test/debugout.txt', '\nRecursing on: ' + recursableRule.node.parent + '\n^^^^^^^^^^^^^^');
+                    // /*DEBUG*/ appendout('./test/debugout.txt', '\nRecursing on: ' + recursableRule.node.parent + '\n^^^^^^^^^^^^^^');
                     processExtension(recursableRule.node);
                     recursableRule = findUnresolvedExtendChild(backFirstTargetNode);
                   }
-                  /*DEBUG*/ appendout('./test/debugout.txt', '\n!Bumping evaluation of :' + atRule.parent);
+                  // /*DEBUG*/ appendout('./test/debugout.txt', '\n!Bumping evaluation of :' + atRule.parent);
                   // We need to re-evaluate the current atRule, as other classes (once passed over) may now be matching.
                   // So we do a hasty-recall and exit (only happens with badly formed css)
                   processExtension(atRule);
@@ -223,7 +223,7 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
                 }
                 if (backFirstTargetNode.parent === atRule.parent.parent) {
                   //Use Tacking onto exiting selectors instead of new creation
-                  /*DEBUG*/ appendout('./test/debugout.txt', '\nUtilizing existing brother subclass for extention, as nothing matches: \n' + atRule.parent.selector + ' sub-' + extTgtSub);
+                  // /*DEBUG*/ appendout('./test/debugout.txt', '\nUtilizing existing brother subclass for extention, as nothing matches: \n' + atRule.parent.selector + ' sub-' + extTgtSub);
                   selectorRetainer = backFirstTargetNode.selector;
                   backFirstTargetNode.selector = selectorRetainer + ', ' + formSubSelector(originSels, extTgtSub).join(', ');
                 } else {
@@ -231,11 +231,11 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
                   subTarget = findBrotherSubClass(atRule.parent, extTgtSub);
                   if (subTarget.bool) {
                     //utilize existing subclass for extention
-                    /*DEBUG*/ appendout('./test/debugout.txt', '\nUtilizing existing subclass for extention:\n' + subTarget);
+                    // /*DEBUG*/ appendout('./test/debugout.txt', '\nUtilizing existing subclass for extention:\n' + subTarget);
                     safeCopyDeclarations(backFirstTargetNode, subTarget.node);
                   } else {
                     //create additional nodes below existing for each instance of subs
-                    /*DEBUG*/ appendout('./test/debugout.txt', '\nUtilizing new subclass for extention, as nothing matches: \n' + atRule.parent.selector + ' sub-' + extTgtSub);
+                    // /*DEBUG*/ appendout('./test/debugout.txt', '\nUtilizing new subclass for extention, as nothing matches: \n' + atRule.parent.selector + ' sub-' + extTgtSub);
                     var newNode = postcss.rule();
                     newNode.semicolon = atRule.semicolon;
                     safeCopyDeclarations(backFirstTargetNode, newNode);
@@ -251,7 +251,7 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
       } //end of if hasMediaAncestor
       if (!couldExtend) {
         result.warn('\'' + atRule.params + '\', has not been defined, so cannot be extended');
-        /*DEBUG*/ appendout('./test/debugout.txt', '\n\'' + atRule.params + '\' has not been defined!!!');
+        // /*DEBUG*/ appendout('./test/debugout.txt', '\n\'' + atRule.params + '\' has not been defined!!!');
       }
       if (atRule.parent !== undefined) {
         if (!atRule.parent.nodes.length || atRule.parent.nodes.length === 1) {
@@ -277,7 +277,7 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
     }
 
     function isBadExtension(atRule) {
-      /*DEEPDEBUG*/ appendout('./test/debugout.txt', '\nisBadExtension -- atRule.parent : ' + atRule.parent + '\nparent.selectors : ' + atRule.parent.selectors);
+      // /*DEEPDEBUG*/ appendout('./test/debugout.txt', '\nisBadExtension -- atRule.parent : ' + atRule.parent + '\nparent.selectors : ' + atRule.parent.selectors);
 
       if (atRule === undefined) {
         result.warn('Extending at-rules need a target', { node: atRule });
@@ -290,10 +290,8 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
       if (atRule.parent.selector === undefined || atRule.parent.selector === '') {
         if (atRule.parent.name === 'define-placeholder') {
           result.warn('Extending at-rules cannot occur within @define statements, only within `%` silent classes', { node: atRule });
-          /*DEEPDEBUG*/ appendout('./test/debugout.txt', '\nExtending at-rules cannot occur within @define statements, only within `%` silent classes');
         } else {
           result.warn('Extending at-rules cannot occur within unnamed rules', { node: atRule });
-          /*DEEPDEBUG*/ appendout('./test/debugout.txt', '\nExtending at-rules cannot occur within unnamed rules');
         }
         return true;
       }
@@ -327,10 +325,10 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
       nodeOrigin.nodes.forEach(function(node) {
         if (isBadDefinitionNode(node)) return;
         if (nodeDest.some(function(decl) { return decl.prop === node.prop; })) {
-          /*DEBUG*/ appendout('./test/debugout.txt', '\nsafeIgnored : ' + node + ' for ' + nodeDest.selector);
+          // /*DEBUG*/ appendout('./test/debugout.txt', '\nsafeIgnored : ' + node + ' for ' + nodeDest.selector);
           return;
         }
-        /*DEBUG*/ appendout('./test/debugout.txt', '\nnodeDest Nodes:\n' + nodeDest.nodes);
+        // /*DEBUG*/ appendout('./test/debugout.txt', '\nnodeDest Nodes:\n' + nodeDest.nodes);
         var clone = node.clone();
         //For lack of a better way to analyse how much tabbing is required:
         if (nodeOrigin.parent === nodeDest.parent) {
@@ -378,7 +376,7 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
           if (node !== nodeOrigin && selectorAccumulator.length === node.selectors.length) {
             seldiff = seldiff.concat(selectorAccumulator);
             seldiff = uniqreq(seldiff);
-            /*DEBUG*/ appendout('./test/debugout.txt', '\nseldiff : ' + seldiff + '\n\tBetween:\n' + node.selectors + '\n\tand:\n' + selectorAccumulator);
+            // /*DEBUG*/ appendout('./test/debugout.txt', '\nseldiff : ' + seldiff + '\n\tBetween:\n' + node.selectors + '\n\tand:\n' + selectorAccumulator);
             if (seldiff.length === selectorAccumulator.length) {
               foundNode = node;
               return true;
