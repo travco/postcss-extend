@@ -1,0 +1,37 @@
+@define-placeholder foobag {
+  @extend .alpha;
+  float: right;
+}
+
+%bar {
+  @extend .alpha;
+  background: pink;
+}
+
+.rabbittrail {
+  font-family: serif;
+}
+
+.bravo {
+  @extend .charlie;
+  color: orange;
+}
+
+.alpha {
+  @extend .rabbittrail;
+  @extend .bravo;
+  color: yellow;
+}
+
+.charlie {
+  color: red;
+}
+
+.foobaghopper {
+  @extend foobag;
+  float: left;
+}
+
+.barhopper {
+  @extend %bar;
+}

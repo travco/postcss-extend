@@ -1,0 +1,27 @@
+.foobaghopper {
+  float: right;
+}
+
+.barhopper {
+  background: pink;
+}
+
+.rabbittrail, .alpha, .barhopper {
+  font-family: serif;
+}
+
+.bravo, .alpha, .barhopper {
+  color: orange;
+}
+
+.alpha, .barhopper {
+  color: yellow;
+}
+
+.charlie, .bravo, .alpha, .barhopper {
+  color: red;
+}
+
+.foobaghopper {
+  float: left;
+}

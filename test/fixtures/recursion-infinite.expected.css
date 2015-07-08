@@ -1,0 +1,19 @@
+.bravo, .alpha, .charlie {
+  color: orange;
+}
+
+.alpha, .charlie, .bravo {
+  color: yellow;
+}
+
+.charlie, .bravo, .alpha {
+  color: red;
+}
+
+.night, #blackout {
+  background: red;
+}
+
+#blackout, .night {
+  color: black;
+}

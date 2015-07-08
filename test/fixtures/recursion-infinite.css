@@ -1,0 +1,24 @@
+.bravo {
+  @extend .charlie;
+  color: orange;
+}
+
+.alpha {
+  @extend .bravo;
+  color: yellow;
+}
+
+.charlie {
+  @extend .alpha;
+  color: red;
+}
+
+.night {
+  @extend #blackout;
+  background: red;
+}
+
+#blackout {
+  @extend .night;
+  color: black;
+}

@@ -325,7 +325,9 @@ Resolves to:
   background: gray;
 }
 ```
-Doesn't that take a lot of computation to do though? Well, not really since it's not 'true' recursion. Since we're tacking-on selectors every rule is a living record of everything that has extended it, and if we're not tacking on selectors - we're copying everything we need from the other rule. Thus, in well-formed CSS we only need to go through the CSS doc once, top to bottom. In badly-formed CSS, it will handle `@extend` recursively if the extended target has unresolved `@extend` rules in it (thus, slowing down processing, but keeping it working as expected).
+Doesn't that take a lot of computation to do though? Well, not really since it's not 'true' recursion. Since we're tacking-on selectors every rule is a living record of everything that has extended it, and if we're not tacking on selectors - we're copying everything we need from the other rule. Thus, in well-formed CSS we only need to go through the CSS doc once, top to bottom.
+
+In anti-pattern CSS (extending things yet to be declared), it will handle `@extend` recursively, but only if the extended target has unresolved `@extend` rules in it (thus, slowing down processing, but keeping it working as expected). As a bonus, there is a built in recursive-stack tracking that both detects infinite loops, and throws warnings (in order of least-tampered css first) for every step of the infinite loop. It also does its best to still process the CSS in the infinite loop (almost always as intended).
 
 ## Getting It Working with PostCSS
 
