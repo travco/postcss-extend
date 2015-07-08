@@ -220,6 +220,11 @@ test('full recursion even in badly-formed CSS', function(t) {
   t.end();
 });
 
+test('full recursion even with placeholders in badly-formed CSS', function(t) {
+  compareFixtures(t, 'recursion-placeholders');
+  t.end();
+});
+
 /*END OF FILEBORN TESTS ----------------*/
 test('works when invoked with () or without', function(t) {
   var someCss = '@define-placeholder bar { background: pink; } .foo { @extend bar; }';

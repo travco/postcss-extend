@@ -74,7 +74,7 @@ npm install postcss-simple-extend --save
 
 ### Defining Placeholders
 
-With `@define-placeholder`, you associate a rule set with a placeholder selector, which you will later extend with concrete selectors. It (and its other aliases) can only be extended if it's already been declared in the document.
+With `@define-placeholder`, you associate a rule set with a placeholder selector, which you will later extend with concrete selectors. It (and its other aliases) can only be extended if it's already been declared in the document, and cannot be extended-out-of.
 
 You can also use it's aliases: `@define-extend` or `@simple-extend-define`.
 
@@ -92,9 +92,9 @@ You can also use it's aliases: `@define-extend` or `@simple-extend-define`.
 
 ##### The '%' (silent) placeholder
 
-The '%' placeholder acts in exactly the same way as `@define-placeholder` and its aliases, with the two exceptions. One, that it doesn't need to be declared before it is extended. Two, it needs to be specifically targeted in the extend, for example: `@extend %simple-list`.
+The '%' placeholder acts in exactly the same way as `@define-placeholder` and its aliases, with the three exceptions. One, that it doesn't need to be declared before it is extended. Two, you can extend out of it (thus extending anything that extends the placeholder, or nothing if the placeholder isn't referenced). Three, it needs to be specifically targeted in the extend, for example: `@extend %simple-list`.
 
-(`@define-placeholder`'s limitations are an originally unintended feature, kept for its possible usefulness).
+(`@define-placeholder`'s limitations are an originally unintended feature, kept for its possible usefulness as a stricter, more controlled method of extending).
 
 Additionally, all definitions should only contain declarations and comments: no statements (violations should log warnings).
 

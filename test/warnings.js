@@ -113,3 +113,31 @@ test('registers extend-without-target warning', function(t) {
 
   t.end();
 });
+
+test('registers extend-with-bad-parent warnings', function(t) {
+
+  t.test('with an @define-placeholder as parent', function(st) {
+    var extendUndefined = '@define-placeholder foo { @extend bar; float:right;} .who { @extend foo; }';
+    checkForWarnings(extendUndefined, function(warnings, result) {
+      st.equal(warnings.length, 2, 'registers both warnings');
+      st.ok(/Defining at-rules cannot contain statements/.test(warnings[0].text),
+        'registers the right warning for bad definition');
+      st.ok(/at-rules cannot occur within \@define/.test(warnings[1].text),
+        'registers the right warning for bad extension');
+      st.equal(result.css, '.who { float:right;\n}', 'bad extension is removed, parent preserved');
+      st.end();
+    });
+  });
+  t.test('with whitespace as the parent selector', function(st) {
+      var extendUndefined = '{ @extend foo; } .foo { float:left; }';
+      checkForWarnings(extendUndefined, function(warnings, result) {
+        st.equal(warnings.length, 1, 'registers a warning');
+        st.ok(/at-rules cannot occur within unnamed/.test(warnings[0].text),
+          'registers the right warning');
+        st.equal(result.css, '.foo { float:left; }', 'bad extension is removed with parent');
+        st.end();
+      });
+    });
+
+  t.end();
+});
