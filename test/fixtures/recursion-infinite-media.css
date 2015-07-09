@@ -1,0 +1,30 @@
+.potato {
+  color: white;
+  outline: brown;
+}
+
+@media (width > 600px) {
+.spud {
+    @extend .potato;
+    font-weight: bold;
+    color: red;
+  }
+  .spud:first-child {
+    background: purple;
+  }
+  .sputnik {
+    @extend .spud;
+    @extend #dbag;
+    font-weight: normal;
+    font-style: italic;
+  }
+}
+
+#dbag {
+  @extend .sputnik;
+}
+
+.potato:first-child,
+.potato:last-child {
+  background: brown;
+}

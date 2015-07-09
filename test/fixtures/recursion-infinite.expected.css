@@ -1,19 +1,23 @@
-.bravo, .alpha, .charlie {
+.foobaghopper {
+  float: right;
+}
+
+.barhopper {
+  background: pink;
+}
+
+.bravo, .alpha, .charlie, .barhopper {
   color: orange;
 }
 
-.alpha, .charlie, .bravo {
+.alpha, .charlie, .bravo, .barhopper {
   color: yellow;
 }
 
-.charlie, .bravo, .alpha {
+.charlie, .bravo, .alpha, .barhopper {
   color: red;
 }
 
-.night, #blackout {
-  background: red;
-}
-
-#blackout, .night {
-  color: black;
+.foobaghopper {
+  float: left;
 }

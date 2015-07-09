@@ -6,8 +6,8 @@ var postcss = require('postcss');
 module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend() {
 
   return function(css, result) {
-    var definingAtRules = ['define-placeholder', 'define-extend', 'simple-extend-define'];
-    var extendingAtRules = ['extend', 'simple-extend', 'simple-extend-addto'];
+    var definingAtRules = ['define-placeholder', 'define-extend'];
+    var extendingAtRules = ['extend'];
     var recurseStack = [];
 
     // /*DEBUG*/ appendout('./test/debugout.txt', '\n----------------------------------------');
@@ -338,25 +338,30 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
 
     function extentionRecursionHandler(atRule, targetNode) {
       var recursableRule = findUnresolvedExtendChild(targetNode);
+      // /*DEBUG*/ appendout('./test/debugout.txt', '\nopen eRH recurseStack : ' + recurseStack);
       if (recursableRule.bool) {
         recurseStack.push(atRule.params);
         while (recursableRule.bool) {
           if (recurseStack.indexOf(recursableRule.node.params) === -1) {
-            // /*DEBUG*/ appendout('./test/debugout.txt', '\nRecursing on: ' + recursableRule.node.parent + '\n\\/\\/\\/\\/\\/\\/\\/\\/ ' + recurseStack.length);
+            // /*DEBUG*/ appendout('./test/debugout.txt', '\nRecursing from ' + atRule.parent.selector + ' on: ' + recursableRule.node.parent + '\n\\/\\/\\/\\/\\/\\/\\/\\/ ' + recurseStack.length);
+            // /*DEBUG*/ appendout('./test/debugout.txt', '\npre-process recurseStack : ' + recurseStack);
             processExtension(recursableRule.node);
             // /*DEBUG*/ appendout('./test/debugout.txt', '\n ^ ^ ^ ^ ^ ^ ^ ^ ' + recurseStack.length);
             recursableRule = findUnresolvedExtendChild(targetNode);
           } else {
             result.warn('Infinite extention recursion detected', { node: atRule });
-            // /*DEBUG*/ appendout('./test/debugout.txt', '\nInfinite Recursion detected on : \n' + atRule.parent + '\n!!!!!!!!!!!!');
-            recurseStack.pop();
+            // /*DEBUG*/ appendout('./test/debugout.txt', '\nInfinite Recursion detected, recurseStack : ' + recurseStack + '\n -- on :\n' + atRule.parent + '\n!!!!!!!!!!!!');
+            //clean out the recurse stack of duplicates (from early aborts) before popping
+            recurseStack = uniqreq(recurseStack);
+            // /*DEBUG*/ appendout('./test/debugout.txt', '\npost-uniqreq recurseStack : ' + recurseStack);
             return false;
           }
         }
 
+        // /*DEBUG*/ appendout('./test/debugout.txt', '\npre-pop recurseStack : ' + recurseStack);
         if (recurseStack.pop() !== atRule.params) {
-          result.warn('Detected mis-aligned recursion stack! (Please post your CSS in a github issue, this shouldn\'t happen!)', { node: atRule });
-          // /*DEBUG*/ appendout('./test/debugout.txt', '\n!!!!!!!!!!!!MISALINED RECURSE STACK\nrecurseStack : ' + recurseStack);
+          // result.warn('Detected mis-aligned recursion stack! (Please post your CSS in a github issue, this shouldn\'t happen!)', { node: atRule });
+          // /*DEBUG*/ appendout('./test/debugout.txt', '\n!!!!!!!!!!!!MISALIGNED RECURSE STACK\npost-pop recurseStack : ' + recurseStack + '');
         }
         // Signal to do a recall and exit (only happens with badly formed css)
         return true;

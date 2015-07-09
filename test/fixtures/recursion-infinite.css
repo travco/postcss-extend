@@ -1,9 +1,20 @@
+@define-placeholder foobag {
+  @extend .alpha;
+  float: right;
+}
+
+%bar {
+  @extend .alpha;
+  background: pink;
+}
+
 .bravo {
   @extend .charlie;
   color: orange;
 }
 
 .alpha {
+  @extend .rabbittrail;
   @extend .bravo;
   color: yellow;
 }
@@ -13,12 +24,11 @@
   color: red;
 }
 
-.night {
-  @extend #blackout;
-  background: red;
+.foobaghopper {
+  @extend foobag;
+  float: left;
 }
 
-#blackout {
-  @extend .night;
-  color: black;
+.barhopper {
+  @extend %bar;
 }

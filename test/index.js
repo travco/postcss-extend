@@ -230,6 +230,11 @@ test('infinite recursion handling in badly-formed CSS', function(t) {
   t.end();
 });
 
+// test('infinite recursion handling around @media in badly-formed CSS', function(t) {
+//   compareFixtures(t, 'recursion-infinite-media');
+//   t.end();
+// });
+
 /*END OF FILEBORN TESTS ----------------*/
 test('works when invoked with () or without', function(t) {
   var someCss = '@define-placeholder bar { background: pink; } .foo { @extend bar; }';
@@ -245,12 +250,8 @@ test('works when invoked with () or without', function(t) {
 test('accepts alternative at-rules', function(t) {
   var standard = p('@define-placeholder bar { background: pink; } .foo { @extend bar; }');
   t.equal(
-    standard,
-    p('@simple-extend-define bar { background: pink; } .foo { @simple-extend-addto bar; }')
-  );
-  t.equal(
-    standard,
-    p('@define-extend bar { background: pink; } .foo { @simple-extend-addto bar; }')
+    p('@define-extend bar { background: pink; } .foo { @extend bar; }'),
+    standard
   );
   t.end();
 });

@@ -1,4 +1,4 @@
-# (A fork of) postcss-simple-extend [![Build Status](https://travis-ci.org/davidtheclark/postcss-simple-extend.svg?branch=master)](https://travis-ci.org/davidtheclark/postcss-simple-extend)
+# postcss-extend [![Build Status](https://travis-ci.org/travco/postcss-extend.svg?branch=master)](https://travis-ci.org/travco/postcss-extend)
 
 **A [PostCSS](https://github.com/postcss/postcss) plugin that trys to minimize the number of repeat-selectors and rules you write in CSS.**
 
@@ -11,7 +11,7 @@ Use this plugin to:
 - Extend existing media-conscious rulesets, even if some of them are within `@media` statements.
 
 
-[Installation](https://github.com/travco/postcss-simple-extend#installation) | [Usage](https://github.com/travco/postcss-simple-extend#usage) | [Getting it Working](https://github.com/travco/postcss-simple-extend#getting-it-working-with-postcss) | [Quirks](https://github.com/travco/postcss-simple-extend#quirks)
+[Installation](https://github.com/travco/postcss-extend#installation) | [Usage](https://github.com/travco/postcss-extend#usage) | [Getting it Working](https://github.com/travco/postcss-extend#getting-it-working-with-postcss) | [Quirks](https://github.com/travco/postcss-extend#quirks)
 --- | --- | --- | ---
 
 
@@ -44,7 +44,7 @@ color: blue;
 Arguably, these limitations make this plugin both less dangerous than SASS's `@extend`, and enforce more (obviously-)predictable behaviors. However, many of SASS `@extend`'s other behaviors have been kept, or altered in such a way to allow ease of use, but not necessarily the same level of strict logical extension.
 In regards to the concerns people have with Sass's `@extend`, and the problems that can arise from its use, many do not apply to this stripped-out version. However, it is by no means foolproof, and Smart Sass users often recommend to only ever `@extend` placeholders (cf. [Harry Robert](http://csswizardry.com/2014/01/extending-silent-classes-in-sass/) and [Hugo Giraudel](http://sass-guidelin.es/#extend)): *with this plugin, that recommendation is not enforced, but syntactically set apart*.
 
-**`postcss-simple-extend` is compatible with PostCSS v4.1+.**
+**`postcss-extend` is compatible with PostCSS v4.1+.**
 
 > **A Note on "mixins" & "extends"**: Mixins copy declarations from an abstract definition into a concrete rule set. These `@extend`s (normally) clone a concrete rule set's selector(s) and add them to an abstract placeholder selector, or another existing rule. *This* plugin enables extends. If you would like to use mixins, as well — or instead — have a look at [`postcss-mixins`](https://github.com/postcss/postcss-mixins).
 
@@ -52,7 +52,7 @@ In regards to the concerns people have with Sass's `@extend`, and the problems t
 This is just a fork, not an NPM module yet :(, it's also still in development, the origin is here, use it in the mean-time:
 
 ```
-npm install postcss-simple-extend --save
+npm install postcss-extend --save
 ```
 
 
@@ -61,22 +61,22 @@ npm install postcss-simple-extend --save
 
 ## Usage
 
-- [Defining Placeholders](https://github.com/travco/postcss-simple-extend#extending-rules-or-placeholders)
-  - [The '%' placeholder](https://github.com/travco/postcss-simple-extend#the--silent-placeholder)
-- [Extending Rules or Placeholders](https://github.com/travco/postcss-simple-extend#extending-rules-or-placeholders)
-  - [Extending Sub Classes and Sub Elements](https://github.com/travco/postcss-simple-extend#extending-sub-classes-and-sub-elements)
-  - [Extending with @media](https://github.com/travco/postcss-simple-extend#extending-with-media)
-    - [Simple declaration-pulling](https://github.com/travco/postcss-simple-extend#simple-declaration-pulling)
-    - [External Sub classes](https://github.com/travco/postcss-simple-extend#external-sub-classes)
-    - [Extending something inside @media (on the outside looking in)](https://github.com/travco/postcss-simple-extend#extending-something-inside-media-on-the-outside-looking-in)
-    - [Extending something in an @media while inside an @media](https://github.com/travco/postcss-simple-extend#extending-something-in-an-media-while-inside-an-media)
-- [Chaining `@extend`s, or Extention-Recursion](https://github.com/travco/postcss-simple-extend#chaining-extends-or-extention-recursion)
+- [Defining Placeholders](https://github.com/travco/postcss-extend#extending-rules-or-placeholders)
+  - [The '%' placeholder](https://github.com/travco/postcss-extend#the--silent-placeholder)
+- [Extending Rules or Placeholders](https://github.com/travco/postcss-extend#extending-rules-or-placeholders)
+  - [Extending Sub Classes and Sub Elements](https://github.com/travco/postcss-extend#extending-sub-classes-and-sub-elements)
+  - [Extending with @media](https://github.com/travco/postcss-extend#extending-with-media)
+    - [Simple declaration-pulling](https://github.com/travco/postcss-extend#simple-declaration-pulling)
+    - [External Sub classes](https://github.com/travco/postcss-extend#external-sub-classes)
+    - [Extending something inside @media (on the outside looking in)](https://github.com/travco/postcss-extend#extending-something-inside-media-on-the-outside-looking-in)
+    - [Extending something in an @media while inside an @media](https://github.com/travco/postcss-extend#extending-something-in-an-media-while-inside-an-media)
+- [Chaining `@extend`s, or Extention-Recursion](https://github.com/travco/postcss-extend#chaining-extends-or-extention-recursion)
 
 ### Defining Placeholders
 
 With `@define-placeholder`, you associate a rule set with a placeholder selector, which you will later extend with concrete selectors. It (and its other aliases) can only be extended if it's already been declared in the document, and cannot be extended-out-of.
 
-You can also use it's aliases: `@define-extend` or `@simple-extend-define`.
+You can also use it's aliases: `@define-extend` or `@extend-define`.
 
 ```css
 @define-placeholder simple-list {
@@ -85,7 +85,7 @@ You can also use it's aliases: `@define-extend` or `@simple-extend-define`.
   padding: 0;
 }
 /* or @define-extend simple list {...} */
-/* or @simple-extend-define list {...} */
+/* or @extend-define list {...} */
 ```
 
 `@define-placeholder` at-rules, and the placeholder names (e.g. `simple-list`, above), will be removed entirely from the generated CSS, replaced by the selectors you've added via `@extend` (see example above).
@@ -102,7 +102,7 @@ Additionally, all definitions should only contain declarations and comments: no 
 
 Use the at-rule `@extend` within a rule set to add that rule set's selector(s) to a placeholder (which was defined via `@define-placeholder`).
 
-You can also use its aliases `@simple-extend` or `@simple-extend-addto`.
+You can also use its alias `@define-extend'.
 
 ```css
 .list-i-want-to-be-simple {
@@ -336,7 +336,7 @@ Plug it in just like any other [PostCSS](https://github.com/postcss/postcss) plu
 ```js
 var fs = require('fs');
 var postcss = require('postcss');
-var simpleExtend = require('postcss-simple-extend');
+var simpleExtend = require('postcss-extend');
 
 var inputCss = fs.readFileSync('input.css', 'utf8');
 
@@ -357,3 +357,5 @@ As with any piece of code it's got a few quirks. Behaviors that are not intended
 **Order of Processing** : Currently, all of the `@extend`s being processed are run in a sequential manner from the top to the bottom of the doc. This keeps thing relatively snappy, but makes it so that we have to do conditional-recursion on not-yet-declared-or-extended rules. This leads to some blatant inefficiencies when processing badly formed CSS. So if you want to keep processing time down, write good CSS.
 
 **Non-logical means of extention for `@media`** : As anyone who's aware of the complications discussed in the [SASS issue about extending across `@media`](https://github.com/sass/sass/issues/1050) would know. There is no way (known) of extending when `@media` rules are involved that is both 'clean and simple' and 'logically correct with how `@extend` is used elsewhere'. The way this plugin operates, and it's logical meaning, is a blatant compromise so that it has both common use cases and easier implementation. While the current implementations will not change (without flags), such things as extending an `@media` from within an `@media` does nothing, this could possibly change in the future. 
+
+##### Originally a fork of davidtheclark's [postcss-simple-extend](https://travis-ci.org/davidtheclark/postcss-extend) (extended) by way of the included [MIT License](https://github.com/travco/postcss-extend/blob/master/LICENSE)
