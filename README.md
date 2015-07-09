@@ -48,7 +48,7 @@ In regards to the concerns people have with Sass's `@extend`, and the problems t
 
 > **A Note on "mixins" & "extends"**: Mixins copy declarations from an abstract definition into a concrete rule set. These `@extend`s (normally) clone a concrete rule set's selector(s) and add them to an abstract placeholder selector, or another existing rule. *This* plugin enables extends. If you would like to use mixins, as well — or instead — have a look at [`postcss-mixins`](https://github.com/postcss/postcss-mixins).
 
-## ~~Installation~~
+## Installation
 This is just a fork, not an NPM module yet :(, it's also still in development, the origin is here, use it in the mean-time:
 
 ```
@@ -358,4 +358,4 @@ As with any piece of code it's got a few quirks. Behaviors that are not intended
 
 **Non-logical means of extention for `@media`** : As anyone who's aware of the complications discussed in the [SASS issue about extending across `@media`](https://github.com/sass/sass/issues/1050) would know. There is no way (known) of extending when `@media` rules are involved that is both 'clean and simple' and 'logically correct with how `@extend` is used elsewhere'. The way this plugin operates, and it's logical meaning, is a blatant compromise so that it has both common use cases and easier implementation. While the current implementations will not change (without flags), such things as extending an `@media` from within an `@media` does nothing, this could possibly change in the future. 
 
-##### Originally a fork of davidtheclark's [postcss-simple-extend](https://travis-ci.org/davidtheclark/postcss-extend) (extended) by way of the included [MIT License](https://github.com/travco/postcss-extend/blob/master/LICENSE)
+##### Originally a fork of davidtheclark's [postcss-simple-extend](https://github.com/davidtheclark/postcss-simple-extend) (extended) by way of the included [MIT License](https://github.com/travco/postcss-extend/blob/master/LICENSE)
