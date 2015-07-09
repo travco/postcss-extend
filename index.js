@@ -6,7 +6,7 @@ var postcss = require('postcss');
 module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend() {
 
   return function(css, result) {
-    var definingAtRules = ['define-placeholder', 'define-extend'];
+    var definingAtRules = ['define-placeholder', 'define-extend', 'extend-define'];
     var extendingAtRules = ['extend'];
     var recurseStack = [];
 
@@ -42,6 +42,7 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
         targetNode.selector = selectorAccumulator.join(', ');
       }
     });
+
     //simplification process to find definitions in the future
     function processDefinition(atRule) {
       if (isBadDefinitionLocation(atRule)) {

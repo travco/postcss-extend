@@ -6,7 +6,7 @@
 
 Use this plugin to:
 - Define an 'silent' extendable selector — a "placeholder selector" — to which you can (from anywhere in the doc), add concrete selectors from other rule sets.
-- Add concrete selectors from one rule (containing the `@extend`) to all rule sets with the selector specified (or a sub class of the one specified).
+- Add concrete selectors from one rule (containing the `@extend`) to all rule sets with the selector specified (or a subclass of the one specified).
 - Pull-in declarations in rulesets (most) anywhere in the doc (by a selector) from within `@media` statements (semi-safely)
 - Extend existing media-conscious rulesets, even if some of them are within `@media` statements.
 
@@ -49,8 +49,6 @@ In regards to the concerns people have with Sass's `@extend`, and the problems t
 > **A Note on "mixins" & "extends"**: Mixins copy declarations from an abstract definition into a concrete rule set. These `@extend`s (normally) clone a concrete rule set's selector(s) and add them to an abstract placeholder selector, or another existing rule. *This* plugin enables extends. If you would like to use mixins, as well — or instead — have a look at [`postcss-mixins`](https://github.com/postcss/postcss-mixins).
 
 ## Installation
-This is just a fork, not an NPM module yet :(, it's also still in development, the origin is here, use it in the mean-time:
-
 ```
 npm install postcss-extend --save
 ```
@@ -112,11 +110,11 @@ You can also use its alias `@define-extend'.
 ```
 Both rules and placeholders are extended in much the same fashion, the only real difference is that placeholders can be named most anything, whereas rules need to be extended via the same syntax in the css. For example, to extend a 'foo' class it'd be `@extend .foo`
 
-There is only one overarching `@extend` guideline to obey: `@extend` must *not* occur at the root level, it only can be used inside rule sets.
+There is only one overarching `@extend` guideline to obey: `@extend` must **not** occur at the root level, it only can be used inside rule sets.
 
 #### Extending Sub Classes and Sub Elements
 
-Whenever extending a rule or placeholder, you are also automatically trying to extend any sub classes or elements that have *exactly* what you selected (before a space, `.`, `:`, or `#`). For example:
+Whenever extending a rule or placeholder, you are also automatically trying to extend any subclasses or elements that have *exactly* what you selected (before a space, `.`, `:`, or `#`). For example:
 ```css
 .potato {
   color: white;
@@ -195,7 +193,7 @@ Notice how `.spud` only takes in declarations it doesn't already have from `.pot
 
 ##### External Sub classes
 
-So what does it do when sub classes of the extended rule are also outside `@media`?
+So what does it do when subclasses of the extended rule are also outside `@media`?
 ```css
 .potato {
   float: left;
@@ -352,7 +350,7 @@ console.log(outputCss);
 Or take advantage of [any of the myriad of other ways to consume PostCSS](https://github.com/postcss/postcss#usage), and follow the plugin instructions they provide.
 
 ## Quirks
-As with any piece of code it's got a few quirks. Behaviors that are not intended, and not enforced, and may disappear (or be forcively altered) with the next release, so it's useful to be aware of them.
+As with any piece of code it's got a few quirks. Behaviors that are not intended, and not enforced, and may disappear (or be forcibly altered) with the next release, so it's useful to be aware of them.
 
 **Order of Processing** : Currently, all of the `@extend`s being processed are run in a sequential manner from the top to the bottom of the doc. This keeps thing relatively snappy, but makes it so that we have to do conditional-recursion on not-yet-declared-or-extended rules. This leads to some blatant inefficiencies when processing badly formed CSS. So if you want to keep processing time down, write good CSS.
 

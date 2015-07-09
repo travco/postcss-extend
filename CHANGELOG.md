@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.4.2
+- [Infinite recursion detection improvements, widespread minor corrections](https://github.com/travco/postcss-extend/releases/tag/v0.4.2)
+
+## v0.4.0
+- [All-intended-features release as 'postcss-extend'](https://github.com/travco/postcss-extend/releases/tag/v0.4.0)
+
 ## v0.3.1
 - Ensure that unused defining at-rules and erroneous extending at-rules are removed from generated CSS.
 

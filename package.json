@@ -5,7 +5,7 @@
     "email": "hofnug@gmail.com"
   },
   "license": "MIT",
-  "version": "0.4.0",
+  "version": "0.4.2",
   "description": "Simple extends for PostCSS",
   "homepage": "https://github.com/travco/postcss-extend",
   "repository": {
