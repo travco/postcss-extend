@@ -149,9 +149,9 @@ test('registers infinite-recursion warning', function(t) {
     var extendUndefined = '.night {@extend #blackout; background: red;} #blackout {@extend .night; color: black;}';
     checkForWarnings(extendUndefined, function(warnings, result) {
       st.equal(warnings.length, 2, 'registers a warning');
-      st.ok(/extention recursion detected/.test(warnings[0].text),
+      st.ok(/extension recursion detected/.test(warnings[0].text),
         'registers the right first warning');
-      st.ok(/extention recursion detected/.test(warnings[1].text),
+      st.ok(/extension recursion detected/.test(warnings[1].text),
         'registers the right second warning');
       st.equal(result.css, '.night, #blackout { background: red;} #blackout, .night { color: black;}', 'avoids infinite-recursion without fouling css output');
       st.end();
@@ -162,11 +162,11 @@ test('registers infinite-recursion warning', function(t) {
     var extendUndefined = '.bravo {@extend .charlie; color: orange;} .alpha {@extend .bravo; color: yellow;} .charlie {@extend .alpha; color: red;}';
     checkForWarnings(extendUndefined, function(warnings, result) {
       st.equal(warnings.length, 3, 'registers a warning');
-      st.ok(/extention recursion detected/.test(warnings[0].text),
+      st.ok(/extension recursion detected/.test(warnings[0].text),
         'registers the right first warning');
-      st.ok(/extention recursion detected/.test(warnings[1].text),
+      st.ok(/extension recursion detected/.test(warnings[1].text),
         'registers the right second warning');
-      st.ok(/extention recursion detected/.test(warnings[2].text),
+      st.ok(/extension recursion detected/.test(warnings[2].text),
         'registers the right third warning');
       st.equal(result.css, '.bravo, .alpha, .charlie { color: orange;} .alpha, .charlie, .bravo { color: yellow;} .charlie, .bravo, .alpha { color: red;}', 'avoids infinite-recursion without fouling css output');
       st.end();

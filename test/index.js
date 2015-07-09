@@ -134,7 +134,7 @@ test('%placeholder works even in an anti-pattern', function(t) {
   t.end();
 });
 
-test('direct extentions work even in an anti-pattern', function(t) {
+test('direct extensions work even in an anti-pattern', function(t) {
   compareFixtures(t, 'antipattern-direct');
   t.end();
 });
@@ -144,12 +144,12 @@ test('removes duplicate selectors automatically', function(t) {
   t.end();
 });
 
-test('bidirectionally recursive behavior on direct extentions', function(t) {
+test('bidirectionally recursive behavior on direct extensions', function(t) {
   compareFixtures(t, 'bidirectionally-recursive');
   t.end();
 });
 
-test('can extend sub-rules of target extention', function(t) {
+test('can extend sub-rules of target extension', function(t) {
   compareFixtures(t, 'sub-root');
   t.end();
 });
@@ -205,7 +205,7 @@ test('extending in media perserves declaration priority of external targets', fu
   t.end();
 });
 
-test('cross-media extentions pull in correctly (aka: they don\'t)', function(t) {
+test('cross-media extensions pull in correctly (aka: they don\'t)', function(t) {
   compareFixtures(t, 'media-cross-media');
   t.end();
 });
@@ -221,7 +221,7 @@ test('full recursion even in badly-formed CSS', function(t) {
 });
 
 test('full recursion even with placeholders in badly-formed CSS', function(t) {
-  compareFixtures(t, 'recursion-placeholders');
+  compareFixtures(t, 'recursion-infinite-placeholders');
   t.end();
 });
 
@@ -230,10 +230,10 @@ test('infinite recursion handling in badly-formed CSS', function(t) {
   t.end();
 });
 
-// test('infinite recursion handling around @media in badly-formed CSS', function(t) {
-//   compareFixtures(t, 'recursion-infinite-media');
-//   t.end();
-// });
+test('infinite recursion handling around @media in badly-formed CSS', function(t) {
+  compareFixtures(t, 'recursion-infinite-media');
+  t.end();
+});
 
 /*END OF FILEBORN TESTS ----------------*/
 test('works when invoked with () or without', function(t) {

@@ -78,7 +78,7 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
         return;
       }
       var originSels = atRule.parent.selectors;
-      var selectorRetainer;
+      var selectorRetainer = [];
       var couldExtend = false;
       var subTarget = {
         node: {},
@@ -101,8 +101,8 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
           for (var n = 0; n < tgtSaved.length; n++) {
             // Operate on normal extendables
             if (atRule.params === tgtSaved[n]) {
-              //check if target has unresolved extentions, then extend them
-              if (extentionRecursionHandler(atRule, targetNode)) {
+              //check if target has unresolved extensions, then extend them
+              if (extensionRecursionHandler(atRule, targetNode)) {
                 // We need to re-evaluate the current atRule, as other classes (once passed over) may now be matching, so re-process and exit.
                 // /*DEBUG*/ appendout('./test/debugout.txt', '\n!Bumping evaluation of :' + atRule.parent);
                 processExtension(atRule);
@@ -119,8 +119,8 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
               var tgtBase = tgtSaved[n].substring(0, tgtSaved[n].substring(1).search(/[\s.:#]/) + 1);
               var tgtSub = tgtSaved[n].substring(tgtSaved[n].substring(1).search(/[\s.:#]/) + 1, tgtSaved[n].length);
               if (atRule.params === tgtBase) {
-                //check if target rule has unresolved extentions, then extend them
-                if (extentionRecursionHandler(atRule, targetNode)) {
+                //check if target rule has unresolved extensions, then extend them
+                if (extensionRecursionHandler(atRule, targetNode)) {
                   // We need to re-evaluate the current atRule, as other classes (once passed over) may now be matching, so re-process and exit.
                   // /*DEBUG*/ appendout('./test/debugout.txt', '\n!Bumping evaluation of :' + atRule.parent);
                   processExtension(atRule);
@@ -135,7 +135,7 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
                 // /*DEBUG*/ appendout('./test/debugout.txt', '\nCombined selectors :\n' + tgtAccumulate);
                 couldExtend = true;
               }
-            }//END OF sub root-extentions
+            }//END OF sub root-extensions
           }
           if (couldExtend) {
             // /*DEBUG*/ appendout('./test/debugout.txt', '\nStart uniqreq2 :\n' + tgtAccumulate);
@@ -162,8 +162,8 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
         while (targetNodeArray.length > 0) {
           backFirstTargetNode = targetNodeArray.pop();
           if (backFirstTargetNode.selectors.indexOf(atRule.params) !== -1) {
-            //check if rule has unresolved extentions, then extend them
-            if (extentionRecursionHandler(atRule, backFirstTargetNode)) {
+            //check if rule has unresolved extensions, then extend them
+            if (extensionRecursionHandler(atRule, backFirstTargetNode)) {
               // We need to re-evaluate the current atRule, as other classes (once passed over) may now be matching, so re-process and exit.
               // /*DEBUG*/ appendout('./test/debugout.txt', '\n!Bumping evaluation of :' + atRule.parent);
               processExtension(atRule);
@@ -173,8 +173,8 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
             //In scope, tack on selector to target rule
             if (backFirstTargetNode.parent === atRule.parent.parent) {
               // /*DEBUG*/ appendout('./test/debugout.txt', '\n...tacking onto backFirstTargetNode :' + backFirstTargetNode);
-              selectorRetainer = backFirstTargetNode.selector;
-              backFirstTargetNode.selector = selectorRetainer + ', ' + originSels.join(', ');
+              selectorRetainer = backFirstTargetNode.selectors;
+              backFirstTargetNode.selector = uniqreq(selectorRetainer.concat(originSels)).join(', ');
             //Out of scope, direcly copy declarations
             } else {
               // /*DEBUG*/ appendout('./test/debugout.txt', '\n...grabbing backFirstTargetNode :\n' + backFirstTargetNode);
@@ -187,8 +187,8 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
               var extTgtBase = backFirstTargetNode.selectors[m].substring(0, backFirstTargetNode.selectors[m].substring(1).search(/[\s.:#]/) + 1);
               var extTgtSub = backFirstTargetNode.selectors[m].substring(backFirstTargetNode.selectors[m].substring(1).search(/[\s.:#]/) + 1, backFirstTargetNode.selectors[m].length);
               if (backFirstTargetNode.selectors[m].substring(1).search(/[\s.:#]/) + 1 !== -1 && extTgtBase === atRule.params) {
-                //check if target rule has unresolved extentions, then extend them
-                if (extentionRecursionHandler(atRule, backFirstTargetNode)) {
+                //check if target rule has unresolved extensions, then extend them
+                if (extensionRecursionHandler(atRule, backFirstTargetNode)) {
                   // We need to re-evaluate the current atRule, as other classes (once passed over) may now be matching, so re-process and exit.
                   // /*DEBUG*/ appendout('./test/debugout.txt', '\n!Bumping evaluation of :' + atRule.parent);
                   processExtension(atRule);
@@ -197,19 +197,19 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
                 }
                 if (backFirstTargetNode.parent === atRule.parent.parent) {
                   //Use Tacking onto exiting selectors instead of new creation
-                  // /*DEBUG*/ appendout('./test/debugout.txt', '\nUtilizing existing brother subclass for extention, as nothing matches: \n' + atRule.parent.selector + ' sub-' + extTgtSub);
-                  selectorRetainer = backFirstTargetNode.selector;
-                  backFirstTargetNode.selector = selectorRetainer + ', ' + formSubSelector(originSels, extTgtSub).join(', ');
+                  // /*DEBUG*/ appendout('./test/debugout.txt', '\nUtilizing existing brother subclass for extension, as nothing matches: \n' + atRule.parent.selector + ' sub-' + extTgtSub);
+                  selectorRetainer = backFirstTargetNode.selectors;
+                  backFirstTargetNode.selector = uniqreq(selectorRetainer.concat(formSubSelector(originSels, extTgtSub))).join(', ');
                 } else {
                   //check for prexisting sub classes before making one
                   subTarget = findBrotherSubClass(atRule.parent, extTgtSub);
                   if (subTarget.bool) {
-                    //utilize existing subclass for extention
-                    // /*DEBUG*/ appendout('./test/debugout.txt', '\nUtilizing existing subclass for extention:\n' + subTarget);
+                    //utilize existing subclass for extension
+                    // /*DEBUG*/ appendout('./test/debugout.txt', '\nUtilizing existing subclass for extension:\n' + subTarget);
                     safeCopyDeclarations(backFirstTargetNode, subTarget.node);
                   } else {
                     //create additional nodes below existing for each instance of subs
-                    // /*DEBUG*/ appendout('./test/debugout.txt', '\nUtilizing new subclass for extention, as nothing matches: \n' + atRule.parent.selector + ' sub-' + extTgtSub);
+                    // /*DEBUG*/ appendout('./test/debugout.txt', '\nUtilizing new subclass for extension, as nothing matches: \n' + atRule.parent.selector + ' sub-' + extTgtSub);
                     var newNode = postcss.rule();
                     newNode.semicolon = atRule.semicolon;
                     safeCopyDeclarations(backFirstTargetNode, newNode);
@@ -336,34 +336,37 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
       };
     }
 
-    function extentionRecursionHandler(atRule, targetNode) {
+    function extensionRecursionHandler(atRule, targetNode) {
       var recursableRule = findUnresolvedExtendChild(targetNode);
-      // /*DEBUG*/ appendout('./test/debugout.txt', '\nopen eRH recurseStack : ' + recurseStack);
+      var isTopOfRecurse = false;
+      if (recurseStack.length === 0) { isTopOfRecurse = true; }
       if (recursableRule.bool) {
         recurseStack.push(atRule.params);
         while (recursableRule.bool) {
           if (recurseStack.indexOf(recursableRule.node.params) === -1) {
             // /*DEBUG*/ appendout('./test/debugout.txt', '\nRecursing from ' + atRule.parent.selector + ' on: ' + recursableRule.node.parent + '\n\\/\\/\\/\\/\\/\\/\\/\\/ ' + recurseStack.length);
-            // /*DEBUG*/ appendout('./test/debugout.txt', '\npre-process recurseStack : ' + recurseStack);
             processExtension(recursableRule.node);
             // /*DEBUG*/ appendout('./test/debugout.txt', '\n ^ ^ ^ ^ ^ ^ ^ ^ ' + recurseStack.length);
             recursableRule = findUnresolvedExtendChild(targetNode);
           } else {
-            result.warn('Infinite extention recursion detected', { node: atRule });
+            result.warn('Infinite extension recursion detected', { node: atRule });
             // /*DEBUG*/ appendout('./test/debugout.txt', '\nInfinite Recursion detected, recurseStack : ' + recurseStack + '\n -- on :\n' + atRule.parent + '\n!!!!!!!!!!!!');
-            //clean out the recurse stack of duplicates (from early aborts) before popping
+            //clean out the recurse stack of duplicates (from early aborts like this) before dropping
             recurseStack = uniqreq(recurseStack);
-            // /*DEBUG*/ appendout('./test/debugout.txt', '\npost-uniqreq recurseStack : ' + recurseStack);
             return false;
           }
         }
 
         // /*DEBUG*/ appendout('./test/debugout.txt', '\npre-pop recurseStack : ' + recurseStack);
-        // if (recurseStack.pop() !== atRule.params) {
-          // result.warn('Detected mis-aligned recursion stack! (Please post your CSS in a github issue, this shouldn\'t happen!)', { node: atRule });
-          // /*DEBUG*/ appendout('./test/debugout.txt', '\n!!!!!!!!!!!!MISALIGNED RECURSE STACK\npost-pop recurseStack : ' + recurseStack + '');
-        // }
-        // Signal to do a recall and exit (only happens with badly formed css)
+        if (recurseStack.pop() !== atRule.params && recurseStack.indexOf(atRule.params) === -1) {
+          result.warn('Detected critically mis-aligned recursion stack! (Please post your CSS in a github issue, this shouldn\'t ever happen!)', { node: atRule });
+          // /*DEBUG*/ appendout('./test/debugout.txt', '\n!!!!!!!!!!!!CRITICALLY MISALIGNED RECURSE STACK\nexpected : ' + atRule.params + '\npost-pop recurseStack : ' + recurseStack);
+        }
+        //Empty history if this is top of a recursion (as process preserves detections as it backs-out)
+        if (isTopOfRecurse) {
+          recurseStack = [];
+          // /*DEBUG*/ appendout('./test/debugout.txt', '\nrecurseStack dumped, at top');
+        }
         return true;
       }
     }

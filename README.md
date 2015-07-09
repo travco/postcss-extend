@@ -61,7 +61,7 @@ npm install postcss-extend --save
 
 ## Usage
 
-- [Defining Placeholders](https://github.com/travco/postcss-extend#extending-rules-or-placeholders)
+- [Defining Placeholders](https://github.com/travco/postcss-extend#defining-placeholders)
   - [The '%' placeholder](https://github.com/travco/postcss-extend#the--silent-placeholder)
 - [Extending Rules or Placeholders](https://github.com/travco/postcss-extend#extending-rules-or-placeholders)
   - [Extending Sub Classes and Sub Elements](https://github.com/travco/postcss-extend#extending-sub-classes-and-sub-elements)
@@ -70,7 +70,7 @@ npm install postcss-extend --save
     - [External Sub classes](https://github.com/travco/postcss-extend#external-sub-classes)
     - [Extending something inside @media (on the outside looking in)](https://github.com/travco/postcss-extend#extending-something-inside-media-on-the-outside-looking-in)
     - [Extending something in an @media while inside an @media](https://github.com/travco/postcss-extend#extending-something-in-an-media-while-inside-an-media)
-- [Chaining `@extend`s, or Extention-Recursion](https://github.com/travco/postcss-extend#chaining-extends-or-extention-recursion)
+- [Chaining `@extend`s, or Extension-Recursion](https://github.com/travco/postcss-extend#chaining-extends-or-extension-recursion)
 
 ### Defining Placeholders
 
@@ -288,7 +288,7 @@ Extending from the root, just like before just tacks on selectors onto target ru
 
 **Don't**. It's currently directly-disallowed in code to prevent unexpected things from happening. The current expectation is that the only time majority of users would do this is when making a mistake. That expectation remains unless someone can present a solution and a logical way of handling this (not in the native CSS parser) that is also a realistic common-use case.
 
-#### Chaining `@extend`s, or extention-recursion
+#### Chaining `@extend`s, or extension-recursion
 
 Definately one of the more powerful features of SASS's `@extend` is here too. It does however, come with a slight caveat that it is order-agnostic. Meaning that it doesn't enforce order by only extending that which came above it, it just goes.
 ```css
@@ -356,6 +356,6 @@ As with any piece of code it's got a few quirks. Behaviors that are not intended
 
 **Order of Processing** : Currently, all of the `@extend`s being processed are run in a sequential manner from the top to the bottom of the doc. This keeps thing relatively snappy, but makes it so that we have to do conditional-recursion on not-yet-declared-or-extended rules. This leads to some blatant inefficiencies when processing badly formed CSS. So if you want to keep processing time down, write good CSS.
 
-**Non-logical means of extention for `@media`** : As anyone who's aware of the complications discussed in the [SASS issue about extending across `@media`](https://github.com/sass/sass/issues/1050) would know. There is no way (known) of extending when `@media` rules are involved that is both 'clean and simple' and 'logically correct with how `@extend` is used elsewhere'. The way this plugin operates, and it's logical meaning, is a blatant compromise so that it has both common use cases and easier implementation. While the current implementations will not change (without flags), such things as extending an `@media` from within an `@media` does nothing, this could possibly change in the future. 
+**Non-logical means of extension for `@media`** : As anyone who's aware of the complications discussed in the [SASS issue about extending across `@media`](https://github.com/sass/sass/issues/1050) would know. There is no way (known) of extending when `@media` rules are involved that is both 'clean and simple' and 'logically correct with how `@extend` is used elsewhere'. The way this plugin operates, and it's logical meaning, is a blatant compromise so that it has both common use cases and easier implementation. While the current implementations will not change (without flags), such things as extending an `@media` from within an `@media` does nothing, this could possibly change in the future. 
 
 ##### Originally a fork of davidtheclark's [postcss-simple-extend](https://github.com/davidtheclark/postcss-simple-extend) (extended) by way of the included [MIT License](https://github.com/travco/postcss-extend/blob/master/LICENSE)
