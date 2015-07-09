@@ -359,10 +359,10 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
         }
 
         // /*DEBUG*/ appendout('./test/debugout.txt', '\npre-pop recurseStack : ' + recurseStack);
-        if (recurseStack.pop() !== atRule.params) {
+        // if (recurseStack.pop() !== atRule.params) {
           // result.warn('Detected mis-aligned recursion stack! (Please post your CSS in a github issue, this shouldn\'t happen!)', { node: atRule });
           // /*DEBUG*/ appendout('./test/debugout.txt', '\n!!!!!!!!!!!!MISALIGNED RECURSE STACK\npost-pop recurseStack : ' + recurseStack + '');
-        }
+        // }
         // Signal to do a recall and exit (only happens with badly formed css)
         return true;
       }
