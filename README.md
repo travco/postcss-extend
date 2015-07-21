@@ -284,7 +284,7 @@ Extending from the root, just like before just tacks on selectors onto target ru
 
 ##### Extending something in an `@media` while inside an `@media`
 
-**Don't**. It's currently directly-disallowed in code to prevent unexpected things from happening. The current expectation is that the only time majority of users would do this is when making a mistake. That expectation remains unless someone can present a solution and a logical way of handling this (not in the native CSS parser) that is also a realistic common-use case.
+**Don't**. It's currently directly-disallowed in code to prevent unexpected things from happening, and will throw an error to warn you. The current expectation is that the only time majority of users would do this is when making a mistake. That expectation remains unless someone can present a solution and a logical way of handling this (not in the native CSS parser) that is also a realistic common-use case.
 
 #### Chaining `@extend`s, or extension-recursion
 
@@ -352,7 +352,7 @@ Or take advantage of [any of the myriad of other ways to consume PostCSS](https:
 ## Quirks
 As with any piece of code it's got a few quirks. Behaviors that are not intended, and not enforced, and may disappear (or be forcibly altered) with the next release, so it's useful to be aware of them.
 
-**Order of Processing** : Currently, all of the `@extend`s being processed are run in a sequential manner from the top to the bottom of the doc. This keeps thing relatively snappy, but makes it so that we have to do conditional-recursion on not-yet-declared-or-extended rules. This leads to some blatant inefficiencies when processing badly formed CSS. So if you want to keep processing time down, write good CSS.
+**Order of Processing** : Currently, all of the `@extend`s being processed are run in a sequential manner from the top to the bottom of the doc. This keeps thing relatively snappy, but makes it so that we have to do conditional-recursion on not-yet-declared-or-extended rules. This leads to some blatant inefficiencies when processing badly formed CSS (anti-pattern CSS). So if you want to keep processing time down, write good CSS. If you're curious if what you're writing is an anti-pattern, don't worry, it will throw a warning.
 
 **Non-logical means of extension for `@media`** : As anyone who's aware of the complications discussed in the [SASS issue about extending across `@media`](https://github.com/sass/sass/issues/1050) would know. There is no way (known) of extending when `@media` rules are involved that is both 'clean and simple' and 'logically correct with how `@extend` is used elsewhere'. The way this plugin operates, and it's logical meaning, is a blatant compromise so that it has both common use cases and easier implementation. While the current implementations will not change (without flags), such things as extending an `@media` from within an `@media` does nothing, this could possibly change in the future. 
 

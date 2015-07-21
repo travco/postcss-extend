@@ -6,7 +6,7 @@
   },
   "license": "MIT",
   "version": "0.4.2",
-  "description": "Simple extends for PostCSS",
+  "description": "As close to cssnext @extend as possible for PostCSS",
   "homepage": "https://github.com/travco/postcss-extend",
   "repository": {
     "type": "git",

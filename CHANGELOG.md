@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.4.3
+- [Antipattern CSS detection and warning, and media-cross-media warning](https://github.com/travco/postcss-extend/releases/tag/v0.4.3)
+
 ## v0.4.2
 - [Infinite recursion detection improvements, widespread minor corrections](https://github.com/travco/postcss-extend/releases/tag/v0.4.2)
 

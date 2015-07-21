@@ -9,6 +9,7 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
     var definingAtRules = ['define-placeholder', 'define-extend', 'extend-define'];
     var extendingAtRules = ['extend'];
     var recurseStack = [];
+    var isAntiPatternCSS = false;
 
     // /*DEBUG*/ appendout('./test/debugout.txt', '\n----------------------------------------');
 
@@ -20,8 +21,8 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
       }
     });
 
-    // Selectively disclude silents and placeholders, find unused,
-    // and exclude from the final output
+    //Selectively disclude silents and placeholders, find unused,
+    //and exclude from the final output
     css.eachRule(function(targetNode) {
       var tgtSaved = targetNode.selectors;
       var selectorAccumulator;
@@ -51,9 +52,9 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
       }
       var definition = postcss.rule();
 
-      // Manually copy styling properties (semicolon, whitespace)
-      // to newly created and cloned nodes,
-      // cf. https://github.com/postcss/postcss/issues/85
+      //Manually copy styling properties (semicolon, whitespace)
+      //to newly created and cloned nodes,
+      //cf. https://github.com/postcss/postcss/issues/85
       definition.semicolon = atRule.semicolon;
       atRule.nodes.forEach(function(node) {
         if (isBadDefinitionNode(node)) return;
@@ -100,11 +101,11 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
           var tgtAccumulate = targetNode.selectors;
 
           for (var n = 0; n < tgtSaved.length; n++) {
-            // Operate on normal extendables
+            //Operate on normal extendables
             if (atRule.params === tgtSaved[n]) {
               //check if target has unresolved extensions, then extend them
               if (extensionRecursionHandler(atRule, targetNode)) {
-                // We need to re-evaluate the current atRule, as other classes (once passed over) may now be matching, so re-process and exit.
+                //We need to re-evaluate the current atRule, as other classes (once passed over) may now be matching, so re-process and exit.
                 // /*DEBUG*/ appendout('./test/debugout.txt', '\n!Bumping evaluation of :' + atRule.parent);
                 processExtension(atRule);
                 couldExtend = true;
@@ -122,7 +123,7 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
               if (atRule.params === tgtBase) {
                 //check if target rule has unresolved extensions, then extend them
                 if (extensionRecursionHandler(atRule, targetNode)) {
-                  // We need to re-evaluate the current atRule, as other classes (once passed over) may now be matching, so re-process and exit.
+                  //We need to re-evaluate the current atRule, as other classes (once passed over) may now be matching, so re-process and exit.
                   // /*DEBUG*/ appendout('./test/debugout.txt', '\n!Bumping evaluation of :' + atRule.parent);
                   processExtension(atRule);
                   couldExtend = true;
@@ -156,16 +157,26 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
           //thus retaining priority when copying declarations if there are multiple matches
           if (!hasMediaAncestor(subRule) || subRule.parent === atRule.parent.parent) {
             targetNodeArray.push(subRule);
-          } // /*DEBUG*/ else {
-            // /*DEBUG*/ appendout('./test/debugout.txt', '\n\'' + atRule.params + '\' ignored possible target in another @media : \n' + subRule);
-          // /*DEBUG*/ }
+
+          //If is in @media extending another @media and is a targeted rule (two phase):
+          //check for an illegal extention, and then don't process that node.
+          } else if (subRule.selectors.indexOf(atRule.params) !== -1) {
+            isBadExtensionPair(atRule, subRule);
+          } else {
+            for (var s = 0; s < subRule.selectors.length; s++) {
+              if (subRule.selectors[s].substring(1).search(/[\s.:#]/) + 1 !== -1 && subRule.selectors[s].substring(0, subRule.selectors[s].substring(1).search(/[\s.:#]/) + 1) === atRule.params) {
+                  isBadExtensionPair(atRule, subRule);
+                  break;
+              }
+            }
+          }
         }); //end of each rule
         while (targetNodeArray.length > 0) {
           backFirstTargetNode = targetNodeArray.pop();
           if (backFirstTargetNode.selectors.indexOf(atRule.params) !== -1) {
             //check if rule has unresolved extensions, then extend them
             if (extensionRecursionHandler(atRule, backFirstTargetNode)) {
-              // We need to re-evaluate the current atRule, as other classes (once passed over) may now be matching, so re-process and exit.
+              //We need to re-evaluate the current atRule, as other classes (once passed over) may now be matching, so re-process and exit.
               // /*DEBUG*/ appendout('./test/debugout.txt', '\n!Bumping evaluation of :' + atRule.parent);
               processExtension(atRule);
               couldExtend = true;
@@ -190,7 +201,7 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
               if (backFirstTargetNode.selectors[m].substring(1).search(/[\s.:#]/) + 1 !== -1 && extTgtBase === atRule.params) {
                 //check if target rule has unresolved extensions, then extend them
                 if (extensionRecursionHandler(atRule, backFirstTargetNode)) {
-                  // We need to re-evaluate the current atRule, as other classes (once passed over) may now be matching, so re-process and exit.
+                  //We need to re-evaluate the current atRule, as other classes (once passed over) may now be matching, so re-process and exit.
                   // /*DEBUG*/ appendout('./test/debugout.txt', '\n!Bumping evaluation of :' + atRule.parent);
                   processExtension(atRule);
                   couldExtend = true;
@@ -225,7 +236,7 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
         }
       } //end of if hasMediaAncestor
       if (!couldExtend) {
-        result.warn('\'' + atRule.params + '\', has not been defined, so cannot be extended');
+        result.warn('\'' + atRule.params + '\', has not been defined, so it cannot be extended');
         // /*DEBUG*/ appendout('./test/debugout.txt', '\n\'' + atRule.params + '\' has not been defined!!!');
       }
       if (atRule.parent !== undefined) {
@@ -270,6 +281,14 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
       }
       if (atRule.params === '' || atRule.params.search(/\s*/) !== 0) {
         result.warn('Extending at-rules need a target', { node: atRule });
+        return true;
+      }
+    }
+
+    function isBadExtensionPair(atRule, targetNode) {
+      if (hasMediaAncestor(targetNode) && hasMediaAncestor(atRule) && targetNode.parent !== atRule.parent.parent) {
+        // /*DEBUG*/ appendout('./test/debugout.txt', '\nMEDIA2MEDIA extention detected, node :\n' + targetNode);
+        result.warn('@extend was called to extend something in an @media from within another @media, this was safely ignored. For more information see the README under \'Quirks\'', {node: targetNode});
         return true;
       }
     }
@@ -341,6 +360,12 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
       var recursableRule = findUnresolvedExtendChild(targetNode);
       var isTopOfRecurse = false;
       if (recurseStack.length === 0) { isTopOfRecurse = true; }
+      if (!isAntiPatternCSS && css.index(atRule.parent) < css.index(targetNode)) {
+        //throw this error only once, and only if it's an antipattern
+        // /*DEBUG*/ appendout('./test/debugout.txt', '\nANTIPATTERN CSS detected node :\n' + atRule.parent);
+        result.warn('@extend is being used in an anti-pattern (extending things not yet defined). This is your first and final warning', {node: atRule.parent});
+        isAntiPatternCSS = true;
+      }
       if (recursableRule.bool) {
         recurseStack.push(atRule.params);
         while (recursableRule.bool) {

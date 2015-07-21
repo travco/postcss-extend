@@ -88,7 +88,7 @@ test('registers extend-without-definition warning', function(t) {
     var extendUndefined = '.bar { @extend foo; }';
     checkForWarnings(extendUndefined, function(warnings, result) {
       st.equal(warnings.length, 1, 'registers a warning');
-      st.ok(/, has not been defined, so cannot be extended/.test(warnings[0].text),
+      st.ok(/, has not been defined, so it cannot be extended/.test(warnings[0].text),
         'registers the right warning');
       st.equal(result.css, '', 'bad extension is removed');
       st.end();
@@ -107,6 +107,53 @@ test('registers extend-without-target warning', function(t) {
       st.ok(/at-rules need a target/.test(warnings[0].text),
         'registers the right warning');
       st.equal(result.css, '', 'bad extension is removed');
+      st.end();
+    });
+  });
+
+  t.end();
+});
+
+test('registers extend-in-an-antipattern warning (only once)', function(t) {
+
+  t.test('with silent placeholder and single extend', function(st) {
+    var extendUndefined = '.who { @extend %foo; } %foo { float:right; }';
+    checkForWarnings(extendUndefined, function(warnings, result) {
+      st.equal(warnings.length, 1, 'registers only one warning');
+      st.ok(/extend is being used in an anti-pattern/.test(warnings[0].text),
+        'registers the right warning');
+      st.equal(result.css, '.who { float:right; }', 'extension-only classes removed, extension processed');
+      st.end();
+    });
+  });
+
+  t.test('with silent placeholder and two extends', function(st) {
+    var extendUndefined = '.who { @extend %foo; } .doo { @extend %foo; } %foo { float:right; }';
+    checkForWarnings(extendUndefined, function(warnings, result) {
+      st.equal(warnings.length, 1, 'registers only one warning');
+      st.ok(/extend is being used in an anti-pattern/.test(warnings[0].text),
+        'registers the right warning');
+      st.equal(result.css, '.who, .doo { float:right; }', 'extension-only classes removed, extension processed');
+      st.end();
+    });
+  });
+
+  t.test('with rule and two extends', function(st) {
+    var extendUndefined = '.who { @extend .foo; } .doo { @extend .foo; } .foo { float:right; }';
+    checkForWarnings(extendUndefined, function(warnings, result) {
+      st.equal(warnings.length, 1, 'registers only one warning');
+      st.ok(/extend is being used in an anti-pattern/.test(warnings[0].text),
+        'registers the right warning');
+      st.equal(result.css, '.foo, .who, .doo { float:right; }', 'extension-only classes removed, extension processed');
+      st.end();
+    });
+  });
+
+  t.test('with rule and two extends, but no anti-pattern', function(st) {
+    var extendUndefined = '.foo { float:right; } .who { @extend .foo; } .doo { @extend .foo; }';
+    checkForWarnings(extendUndefined, function(warnings, result) {
+      st.equal(warnings.length, 0, 'registers no warning');
+      st.equal(result.css, '.foo, .who, .doo { float:right; }', 'extension-only classes removed, extension processed');
       st.end();
     });
   });
@@ -143,16 +190,36 @@ test('registers extend-with-bad-parent warnings', function(t) {
   t.end();
 });
 
-test('registers infinite-recursion warning', function(t) {
+test('registers @media extending another @media warning', function(t) {
+
+  t.test('with an @define-placeholder as parent', function(st) {
+    var extendUndefined = '@media (width < 600px) { .spud { background: black; } } @media (width > 600px) { .potato { @extend .spud; float: left; } }';
+    checkForWarnings(extendUndefined, function(warnings, result) {
+      st.equal(warnings.length, 2, 'registers both warnings');
+      st.ok(/extend was called to extend something in an @media from within another @media/.test(warnings[0].text),
+        'registers the right warning for bad definition');
+      st.ok(/, has not been defined, so it cannot be extended/.test(warnings[1].text),
+        'registers the lack of valid target');
+      st.equal(result.css, '@media (width < 600px) { .spud { background: black; } } @media (width > 600px) { .potato { float: left; } }', 'bad extension is removed, action ignored');
+      st.end();
+    });
+  });
+
+  t.end();
+});
+
+test('registers infinite-recursion warnings', function(t) {
 
   t.test('with two-point cyclic', function(st) {
     var extendUndefined = '.night {@extend #blackout; background: red;} #blackout {@extend .night; color: black;}';
     checkForWarnings(extendUndefined, function(warnings, result) {
-      st.equal(warnings.length, 2, 'registers a warning');
-      st.ok(/extension recursion detected/.test(warnings[0].text),
+      st.equal(warnings.length, 3, 'registers correct number of warnings');
+      st.ok(/extend is being used in an anti-pattern/.test(warnings[0].text),
         'registers the right first warning');
       st.ok(/extension recursion detected/.test(warnings[1].text),
         'registers the right second warning');
+      st.ok(/extension recursion detected/.test(warnings[2].text),
+        'registers the right third warning');
       st.equal(result.css, '.night, #blackout { background: red;} #blackout, .night { color: black;}', 'avoids infinite-recursion without fouling css output');
       st.end();
     });
@@ -161,13 +228,15 @@ test('registers infinite-recursion warning', function(t) {
   t.test('with n-point cyclic', function(st) {
     var extendUndefined = '.bravo {@extend .charlie; color: orange;} .alpha {@extend .bravo; color: yellow;} .charlie {@extend .alpha; color: red;}';
     checkForWarnings(extendUndefined, function(warnings, result) {
-      st.equal(warnings.length, 3, 'registers a warning');
-      st.ok(/extension recursion detected/.test(warnings[0].text),
+      st.equal(warnings.length, 4, 'registers corect number of warnings');
+      st.ok(/extend is being used in an anti-pattern/.test(warnings[0].text),
         'registers the right first warning');
       st.ok(/extension recursion detected/.test(warnings[1].text),
         'registers the right second warning');
       st.ok(/extension recursion detected/.test(warnings[2].text),
         'registers the right third warning');
+      st.ok(/extension recursion detected/.test(warnings[3].text),
+        'registers the right fourth warning');
       st.equal(result.css, '.bravo, .alpha, .charlie { color: orange;} .alpha, .charlie, .bravo { color: yellow;} .charlie, .bravo, .alpha { color: red;}', 'avoids infinite-recursion without fouling css output');
       st.end();
     });

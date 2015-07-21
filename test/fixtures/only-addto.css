@@ -1,7 +1,1 @@
-@define-placeholder foo {
-  background: pink;
-}
-
-.bar {
-  @extend foo;
-}
+@define-placeholder foo { background: pink; } .bar { @extend foo; }
