@@ -236,7 +236,7 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
         }
       } //end of if hasMediaAncestor
       if (!couldExtend) {
-        result.warn('\'' + atRule.params + '\', has not been defined, so it cannot be extended');
+        result.warn('\'' + atRule.params + '\', has not been defined, so it cannot be extended', { node: atRule });
         // /*DEBUG*/ appendout('./test/debugout.txt', '\n\'' + atRule.params + '\' has not been defined!!!');
       }
       if (atRule.parent !== undefined) {
@@ -287,8 +287,8 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
 
     function isBadExtensionPair(atRule, targetNode) {
       if (hasMediaAncestor(targetNode) && hasMediaAncestor(atRule) && targetNode.parent !== atRule.parent.parent) {
-        // /*DEBUG*/ appendout('./test/debugout.txt', '\nMEDIA2MEDIA extention detected, node :\n' + targetNode);
-        result.warn('@extend was called to extend something in an @media from within another @media, this was safely ignored. For more information see the README under \'Quirks\'', {node: targetNode});
+        // /*DEBUG*/ appendout('./test/debugout.txt', '\nMEDIA2MEDIA extention detected, node :\n' + atRule.parent);
+        result.warn('@extend was called to extend something in an @media from within another @media, this was safely ignored. For more information see the README under \'Quirks\'', {node: atRule});
         return true;
       }
     }
@@ -363,7 +363,7 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
       if (!isAntiPatternCSS && css.index(atRule.parent) < css.index(targetNode)) {
         //throw this error only once, and only if it's an antipattern
         // /*DEBUG*/ appendout('./test/debugout.txt', '\nANTIPATTERN CSS detected node :\n' + atRule.parent);
-        result.warn('@extend is being used in an anti-pattern (extending things not yet defined). This is your first and final warning', {node: atRule.parent});
+        result.warn('@extend is being used in an anti-pattern (extending things not yet defined). This is your first and final warning', {node: atRule});
         isAntiPatternCSS = true;
       }
       if (recursableRule.bool) {

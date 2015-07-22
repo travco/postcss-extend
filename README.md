@@ -72,7 +72,7 @@ npm install postcss-extend --save
 
 ### Defining Placeholders
 
-With `@define-placeholder`, you associate a rule set with a placeholder selector, which you will later extend with concrete selectors. It (and its other aliases) can only be extended if it's already been declared in the document, and cannot be extended-out-of.
+With `@define-placeholder`, you associate a rule set with a placeholder selector, which you will later extend with concrete selectors. It (and its other aliases) can only be extended if it's already been declared in the document, and *cannot be extended-out-of*.
 
 You can also use it's aliases: `@define-extend` or `@extend-define`.
 
