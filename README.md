@@ -94,7 +94,7 @@ The '%' placeholder acts in exactly the same way as `@define-placeholder` and it
 
 (`@define-placeholder`'s limitations are an originally unintended feature, kept for its possible usefulness as a stricter, more controlled method of extending).
 
-Additionally, all definitions should only contain declarations and comments: no statements (violations should log warnings).
+Additionally, all definitions will log a warning if they go unused, and should only contain declarations and comments: no statements (violations will also log warnings).
 
 ### Extending Rules or Placeholders
 
