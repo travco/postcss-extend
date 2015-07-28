@@ -141,6 +141,9 @@ Resolves to:
 ```
 Make note that `#superfun` deletes itself, because otherwise it would have been empty brackets.
 
+You also can still specifically extend subclasses by-themselves by calling them out explictly.
+If (in the above example) you wanted to only get `background:brown` instead of everything having to do with `.potato`, you could just use `@extend .potato:first-child;`.
+
 #### Extending with `@media`
 
 The bridging behavior of this plugin is by far it's most dangerous, despite the steps to keep it relatively sane. Be mindful.
@@ -356,7 +359,7 @@ As with any piece of code it's got a few quirks. Behaviors that are not intended
 
 **Non-logical means of extension for `@media`** : As anyone who's aware of the complications discussed in the [SASS issue about extending across `@media`](https://github.com/sass/sass/issues/1050) would know. There is no way (known) of extending when `@media` rules are involved that is both 'clean and simple' and 'logically correct with how `@extend` is used elsewhere'. The way this plugin operates, and it's logical meaning, is a blatant compromise so that it has both common use cases and easier implementation. While the current implementations will not change (without flags), such things as extending an `@media` from within an `@media` does nothing, this could possibly change in the future. 
 
-#### 'TLDR' Contention with the spec:
+#### 'TLDR' Contention with the `@extend` [spec](https://tabatkins.github.io/specs/css-extend-rule):
 
 - **Order of Processing/Specificity** In normal cases, the document is processed top-to-bottom, however as a feature-fallout of the implementation, it is capable of extending in an anti-pattern (extending things yet to be declared). If what you're writing is an anti-pattern, it will throw a warning.
 - **Media-cross-media Inheritance** Attempting to extend a rule inside a media block from within another media block [is directly disallowed in the code](https://github.com/travco/postcss-extend#quirks) and will throw a warning.
