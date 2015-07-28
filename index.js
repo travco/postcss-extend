@@ -217,7 +217,7 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
                   subTarget = findBrotherSubClass(atRule.parent, extTgtSub);
                   if (subTarget.bool) {
                     //utilize existing subclass for extension
-                    // /*DEBUG*/ appendout('./test/debugout.txt', '\nUtilizing existing subclass for extension:\n' + subTarget);
+                    // /*DEBUG*/ appendout('./test/debugout.txt', '\nUtilizing existing subclass for extension:\n' + subTarget.selector);
                     safeCopyDeclarations(backFirstTargetNode, subTarget.node);
                   } else {
                     //create additional nodes below existing for each instance of subs
