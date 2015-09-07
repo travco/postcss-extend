@@ -13,7 +13,7 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
 
     // /*DEBUG*/ appendout('./test/debugout.txt', '\n----------------------------------------');
 
-    css.eachAtRule(function(atRule) {
+    css.walkAtRules(function(atRule) {
       if (definingAtRules.indexOf(atRule.name) !== -1) {
         processDefinition(atRule);
       } else if (extendingAtRules.indexOf(atRule.name) !== -1) {
@@ -23,7 +23,7 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
 
     //Selectively disclude silents and placeholders, find unused,
     //and exclude from the final output
-    css.eachRule(function(targetNode) {
+    css.walkRules(function(targetNode) {
       var tgtSaved = targetNode.selectors;
       var selectorAccumulator;
       for (var i = 0; i < tgtSaved.length; i++) {
@@ -34,7 +34,7 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
             selectorAccumulator.push(tgtSaved[i]);
           }
         } else if (tgtSaved.length === 1) {
-          targetNode.removeSelf();
+          targetNode.remove();
         // /*DEBUG*/ } else {
           // /*DEBUG*/ appendout('./test/debugout.txt', '\nSifted out placeholder/silent ' + tgtSaved[i]);
         }
@@ -47,7 +47,7 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
     //simplification process to find definitions in the future
     function processDefinition(atRule) {
       if (isBadDefinitionLocation(atRule)) {
-        atRule.removeSelf();
+        atRule.remove();
         return;
       }
       var definition = postcss.rule();
@@ -55,27 +55,27 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
       //Manually copy styling properties (semicolon, whitespace)
       //to newly created and cloned nodes,
       //cf. https://github.com/postcss/postcss/issues/85
-      definition.semicolon = atRule.semicolon;
+      definition.raws.semicolon = atRule.raws.semicolon;
       atRule.nodes.forEach(function(node) {
         if (isBadDefinitionNode(node)) return;
         var clone = node.clone();
-        clone.before = node.before;
-        clone.after = node.after;
-        clone.between = node.between;
+        clone.raws.before = node.raws.before;
+        clone.raws.after = node.raws.after;
+        clone.raws.between = node.raws.between;
         definition.append(clone);
       });
       definition.selector = '@define-placeholder ' + atRule.params.toString();
       // /*DEBUG*/ appendout('./test/debugout.txt', '\nDeclaring placeholder : ' + definition.selector);
       atRule.parent.insertBefore(atRule, definition);
-      atRule.removeSelf();
+      atRule.remove();
     }
 
     function processExtension(atRule) {
       if (isBadExtension(atRule)) {
         if (!atRule.parent.nodes.length || (atRule.parent.nodes.length === 1 && atRule.parent.type !== 'root')) {
-          atRule.parent.removeSelf();
+          atRule.parent.remove();
         } else {
-          atRule.removeSelf();
+          atRule.remove();
         }
         return;
       }
@@ -88,7 +88,7 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
       };
 
       if (!hasMediaAncestor(atRule)) {
-        css.eachRule(function(targetNode) {
+        css.walkRules(function(targetNode) {
           var tgtSaved = targetNode.selectors;
           //Strip all @define-placeholders and save slug-selectors present in tgtSaved
           for (var i = 0; i < tgtSaved.length; i++) {
@@ -152,7 +152,7 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
         // /*DEBUG*/ appendout('./test/debugout.txt', '\nAttempting to fetch declarations for ' + atRule.params + '...');
         var backFirstTargetNode;
         var targetNodeArray = [];
-        css.eachRule(function(subRule) {
+        css.walkRules(function(subRule) {
           //create a back-is-top stack so that we can efficiently operate on nodes in reverse
           //thus retaining priority when copying declarations if there are multiple matches
           if (!hasMediaAncestor(subRule) || subRule.parent === atRule.parent.parent) {
@@ -241,9 +241,9 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
       }
       if (atRule.parent !== undefined) {
         if (!atRule.parent.nodes.length || atRule.parent.nodes.length === 1) {
-          atRule.parent.removeSelf();
+          atRule.parent.remove();
         } else {
-          atRule.removeSelf();
+          atRule.remove();
         }
       }
     }
@@ -324,12 +324,12 @@ module.exports = postcss.plugin('postcss-simple-extend', function simpleExtend()
         var clone = node.clone();
         //For lack of a better way to analyse how much tabbing is required:
         if (nodeOrigin.parent === nodeDest.parent) {
-          clone.before = node.before;
+          clone.raws.before = node.raws.before;
         } else {
-          clone.before = node.before + '\t';
+          clone.raws.before = node.raws.before + '\t';
         }
-        clone.after = node.after;
-        clone.between = node.between;
+        clone.raws.after = node.raws.after;
+        clone.raws.between = node.raws.between;
         nodeDest.append(clone);
       });
     }

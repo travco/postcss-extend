@@ -1,5 +1,8 @@
 # Changelog
 
+## v1.0.0
+- [Updated to PostCSS 5](https://github.com/travco/postcss-extend/releases/tag/v1.0.0)
+
 ## v0.4.3
 - [Antipattern CSS detection and warning, and media-cross-media warning](https://github.com/travco/postcss-extend/releases/tag/v0.4.3)
 
