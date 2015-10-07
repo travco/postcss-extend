@@ -19,7 +19,7 @@ test('registers location warning', function(t) {
     checkForWarnings(nonrootDefine, function(warnings, result) {
       st.equal(warnings.length, 1, 'registers a warning');
       st.ok(/must occur at the root level/.test(warnings[0].text),
-        'registers the right warning');
+        'registers the correct warning');
       st.equal(result.css, '.foo { }', 'bad definition is removed');
       st.end();
     });
@@ -32,7 +32,7 @@ test('registers location warning', function(t) {
     checkForWarnings(mediaDefine, function(warnings, result) {
       st.equal(warnings.length, 1, 'registers a warning');
       st.ok(/must occur at the root level/.test(warnings[0].text),
-        'registers the right warning');
+        'registers the correct warning');
       st.equal(result.css, '@media (max-width: 700em) { }', 'bad definition is removed');
       st.end();
     });
@@ -43,7 +43,7 @@ test('registers location warning', function(t) {
     checkForWarnings(rootExtend, function(warnings, result) {
       st.equal(warnings.length, 1, 'registers a warning');
       st.ok(/cannot occur at the root level/.test(warnings[0].text),
-        'registers the right warning');
+        'registers the correct warning');
       st.equal(result.css, '', 'bad extension is removed');
       st.end();
     });
@@ -59,7 +59,7 @@ test('register illegal nesting warning', function(t) {
     checkForWarnings(defineWithRule, function(warnings, result) {
       st.equal(warnings.length, 1, 'registers a warning');
       st.ok(/cannot contain statements/.test(warnings[0].text),
-        'registers the right warning');
+        'registers the correct warning');
       st.equal(result.css, '', 'bad definition is removed');
       st.end();
     });
@@ -73,7 +73,7 @@ test('register illegal nesting warning', function(t) {
     checkForWarnings(defineWithMedia, function(warnings, result) {
       st.equal(warnings.length, 1, 'registers a warning');
       st.ok(/cannot contain statements/.test(warnings[0].text),
-        'registers the right warning');
+        'registers the correct warning');
       st.equal(result.css, '', 'bad definition is removed');
       st.end();
     });
@@ -89,7 +89,7 @@ test('registers extend-without-definition warning', function(t) {
     checkForWarnings(extendUndefined, function(warnings, result) {
       st.equal(warnings.length, 1, 'registers a warning');
       st.ok(/, has not been defined, so it cannot be extended/.test(warnings[0].text),
-        'registers the right warning');
+        'registers the correct warning');
       st.equal(result.css, '', 'bad extension is removed');
       st.end();
     });
@@ -105,7 +105,7 @@ test('registers extend-without-target warning', function(t) {
     checkForWarnings(extendUndefined, function(warnings, result) {
       st.equal(warnings.length, 1, 'registers a warning');
       st.ok(/at-rules need a target/.test(warnings[0].text),
-        'registers the right warning');
+        'registers the correct warning');
       st.equal(result.css, '', 'bad extension is removed');
       st.end();
     });
@@ -121,7 +121,7 @@ test('registers extend-in-an-antipattern warning (only once)', function(t) {
     checkForWarnings(extendUndefined, function(warnings, result) {
       st.equal(warnings.length, 1, 'registers only one warning');
       st.ok(/extend is being used in an anti-pattern/.test(warnings[0].text),
-        'registers the right warning');
+        'registers the correct warning');
       st.equal(result.css, '.who { float:right; }', 'extension-only classes removed, extension processed');
       st.end();
     });
@@ -132,7 +132,7 @@ test('registers extend-in-an-antipattern warning (only once)', function(t) {
     checkForWarnings(extendUndefined, function(warnings, result) {
       st.equal(warnings.length, 1, 'registers only one warning');
       st.ok(/extend is being used in an anti-pattern/.test(warnings[0].text),
-        'registers the right warning');
+        'registers the correct warning');
       st.equal(result.css, '.who, .doo { float:right; }', 'extension-only classes removed, extension processed');
       st.end();
     });
@@ -143,7 +143,7 @@ test('registers extend-in-an-antipattern warning (only once)', function(t) {
     checkForWarnings(extendUndefined, function(warnings, result) {
       st.equal(warnings.length, 1, 'registers only one warning');
       st.ok(/extend is being used in an anti-pattern/.test(warnings[0].text),
-        'registers the right warning');
+        'registers the correct warning');
       st.equal(result.css, '.foo, .who, .doo { float:right; }', 'extension-only classes removed, extension processed');
       st.end();
     });
@@ -158,6 +158,26 @@ test('registers extend-in-an-antipattern warning (only once)', function(t) {
     });
   });
 
+  t.test('acts properly with @media later in the file', function(st) {
+    var extendPattern = '.potato { color: white; outline: brown; font-family: sans-serif; } @media (width > 600px) { .spud { @extend .potato; } }';
+    checkForWarnings(extendPattern, function(warnings, result) {
+      st.equal(warnings.length, 0, 'registers no warnings');
+      st.equal(result.css, '.potato { color: white; outline: brown; font-family: sans-serif; } @media (width > 600px) { .spud { \tcolor: white; \toutline: brown; \tfont-family: sans-serif; } }',
+        'extension happens without warning');
+      st.end();
+    });
+  });
+
+  t.test('acts properly with @media earlier in the file', function(st) {
+    var extendPattern = '@media (width > 600px) { .spud { @extend .potato; } } .potato { color: white; outline: brown; font-family: sans-serif; }';
+    checkForWarnings(extendPattern, function(warnings, result) {
+      st.equal(warnings.length, 1, 'registers a warning');
+      st.equal(result.css, '@media (width > 600px) { .spud { \tcolor: white; \toutline: brown; \tfont-family: sans-serif; } } .potato { color: white; outline: brown; font-family: sans-serif; }',
+        'extension happens despite warning');
+      st.end();
+    });
+  });
+
   t.end();
 });
 
@@ -168,9 +188,9 @@ test('registers extend-with-bad-parent warnings', function(t) {
     checkForWarnings(extendUndefined, function(warnings, result) {
       st.equal(warnings.length, 2, 'registers both warnings');
       st.ok(/Defining at-rules cannot contain statements/.test(warnings[0].text),
-        'registers the right warning for bad definition');
+        'registers the correct warning for bad definition');
       st.ok(/at-rules cannot occur within \@define/.test(warnings[1].text),
-        'registers the right warning for bad extension');
+        'registers the correct warning for bad extension');
       st.equal(result.css, '.who { float:right;\n}', 'bad extension is removed, parent preserved');
       st.end();
     });
@@ -181,7 +201,7 @@ test('registers extend-with-bad-parent warnings', function(t) {
       checkForWarnings(extendUndefined, function(warnings, result) {
         st.equal(warnings.length, 1, 'registers a warning');
         st.ok(/at-rules cannot occur within unnamed/.test(warnings[0].text),
-          'registers the right warning');
+          'registers the correct warning');
         st.equal(result.css, '.foo { float:left; }', 'bad extension is removed with parent');
         st.end();
       });
@@ -197,7 +217,7 @@ test('registers @media extending another @media warning', function(t) {
     checkForWarnings(extendUndefined, function(warnings, result) {
       st.equal(warnings.length, 2, 'registers both warnings');
       st.ok(/extend was called to extend something in an @media from within another @media/.test(warnings[0].text),
-        'registers the right warning for bad definition');
+        'registers the correct warning for bad definition');
       st.ok(/, has not been defined, so it cannot be extended/.test(warnings[1].text),
         'registers the lack of valid target');
       st.equal(result.css, '@media (width < 600px) { .spud { background: black; } } @media (width > 600px) { .potato { float: left; } }', 'bad extension is removed, action ignored');
@@ -243,29 +263,3 @@ test('registers infinite-recursion warnings', function(t) {
   });
   t.end();
 });  
-
-test('registers anti-pattern warnings correctly around @media', function(t) {
-
-  t.test('with media later in the file', function(st) {
-    var extendPattern = '.potato { color: white; outline: brown; font-family: sans-serif; } @media (width > 600px) { .spud { @extend .potato; } }';
-    checkForWarnings(extendPattern, function(warnings, result) {
-      st.equal(warnings.length, 0, 'registers no warnings');
-      st.equal(result.css, '.potato { color: white; outline: brown; font-family: sans-serif; } @media (width > 600px) { .spud { \tcolor: white; \toutline: brown; \tfont-family: sans-serif; } }',
-        'extension happens without warning');
-      st.end();
-    });
-  });
-
-  t.test('with media earlier in the file', function(st) {
-    var extendPattern = '@media (width > 600px) { .spud { @extend .potato; } } .potato { color: white; outline: brown; font-family: sans-serif; }';
-    checkForWarnings(extendPattern, function(warnings, result) {
-      st.equal(warnings.length, 1, 'registers a warning');
-      st.equal(result.css, '@media (width > 600px) { .spud { \tcolor: white; \toutline: brown; \tfont-family: sans-serif; } } .potato { color: white; outline: brown; font-family: sans-serif; }',
-        'extension happens despite warning');
-      st.end();
-    });
-  });
-
-
-  t.end();
-});

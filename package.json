@@ -5,7 +5,7 @@
     "email": "hofnug@gmail.com"
   },
   "license": "MIT",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "As close to cssnext @extend as possible for PostCSS",
   "homepage": "https://github.com/travco/postcss-extend",
   "repository": {
