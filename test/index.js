@@ -3,7 +3,7 @@
 var fs = require('fs');
 var postcss = require('postcss');
 var test = require('tape');
-var simpleExtend = require('..');
+var extend = require('..');
 
 function fixturePath(name) {
   return 'test/fixtures/' + name + '.css';
@@ -14,7 +14,7 @@ function fixture(name) {
 }
 
 function compareFixtures(t, name) {
-  var actualCss = postcss(simpleExtend)
+  var actualCss = postcss(extend)
     .process(fixture(name), { from: fixturePath(name) })
     .css
     .trim();
@@ -31,7 +31,7 @@ function compareFixtures(t, name) {
 }
 
 function p(css) {
-  return postcss(simpleExtend).process(css).css;
+  return postcss(extend).process(css).css;
 }
 
 test('@define-placeholder basically works', function(t) {
@@ -235,13 +235,14 @@ test('infinite recursion handling around @media in badly-formed CSS', function(t
   t.end();
 });
 
+
 /*END OF FILEBORN TESTS ----------------*/
 test('works when invoked with () or without', function(t) {
   var someCss = '@define-placeholder bar { background: pink; } .foo { @extend bar; }';
 
   t.equal(
-    postcss(simpleExtend).process(someCss).css,
-    postcss(simpleExtend()).process(someCss).css
+    postcss(extend).process(someCss).css,
+    postcss(extend()).process(someCss).css
   );
 
   t.end();

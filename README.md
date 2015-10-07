@@ -44,7 +44,7 @@ color: blue;
 Arguably, these limitations make this plugin both less dangerous than SASS's `@extend`, and enforce more (obviously-)predictable behaviors. However, many of SASS `@extend`'s other behaviors have been kept, or altered in such a way to allow ease of use, but not necessarily the same level of strict logical extension.
 In regards to the concerns people have with Sass's `@extend`, and the problems that can arise from its use, many do not apply to this stripped-out version. However, it is by no means foolproof, and Smart Sass users often recommend to only ever `@extend` placeholders (cf. [Harry Robert](http://csswizardry.com/2014/01/extending-silent-classes-in-sass/) and [Hugo Giraudel](http://sass-guidelin.es/#extend)): *with this plugin, that recommendation is not enforced, but syntactically set apart*.
 
-**`postcss-extend` is compatible with PostCSS v4.1+.**
+**`postcss-extend` is compatible with PostCSS v5.0+.**
 
 > **A Note on "mixins" & "extends"**: Mixins copy declarations from an abstract definition into a concrete rule set. These `@extend`s (normally) clone a concrete rule set's selector(s) and add them to an abstract placeholder selector, or another existing rule. *This* plugin enables extends. If you would like to use mixins, as well — or instead — have a look at [`postcss-mixins`](https://github.com/postcss/postcss-mixins).
 

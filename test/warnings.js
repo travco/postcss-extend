@@ -2,10 +2,10 @@
 
 var test = require('tape');
 var postcss = require('postcss');
-var simpleExtend = require('..');
+var extend = require('..');
 
 function checkForWarnings(css, cb) {
-  postcss(simpleExtend).process(css).then(function(result) {
+  postcss(extend).process(css).then(function(result) {
     cb(result.warnings(), result);
   }).catch(function(err) {
     console.log(err);
@@ -241,6 +241,31 @@ test('registers infinite-recursion warnings', function(t) {
       st.end();
     });
   });
+  t.end();
+});  
+
+test('registers anti-pattern warnings correctly around @media', function(t) {
+
+  t.test('with media later in the file', function(st) {
+    var extendPattern = '.potato { color: white; outline: brown; font-family: sans-serif; } @media (width > 600px) { .spud { @extend .potato; } }';
+    checkForWarnings(extendPattern, function(warnings, result) {
+      st.equal(warnings.length, 0, 'registers no warnings');
+      st.equal(result.css, '.potato { color: white; outline: brown; font-family: sans-serif; } @media (width > 600px) { .spud { \tcolor: white; \toutline: brown; \tfont-family: sans-serif; } }',
+        'extension happens without warning');
+      st.end();
+    });
+  });
+
+  t.test('with media earlier in the file', function(st) {
+    var extendPattern = '@media (width > 600px) { .spud { @extend .potato; } } .potato { color: white; outline: brown; font-family: sans-serif; }';
+    checkForWarnings(extendPattern, function(warnings, result) {
+      st.equal(warnings.length, 1, 'registers a warning');
+      st.equal(result.css, '@media (width > 600px) { .spud { \tcolor: white; \toutline: brown; \tfont-family: sans-serif; } } .potato { color: white; outline: brown; font-family: sans-serif; }',
+        'extension happens despite warning');
+      st.end();
+    });
+  });
+
 
   t.end();
 });

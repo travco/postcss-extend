@@ -1,5 +1,8 @@
 # Changelog
 
+## v1.0.1
+- [Updated readme and exports, minor fixes](https://github.com/travco/postcss-extend/releases/tag/v1.0.1)
+
 ## v1.0.0
 - [Updated to PostCSS 5](https://github.com/travco/postcss-extend/releases/tag/v1.0.0)
 
