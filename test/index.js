@@ -235,6 +235,11 @@ test('infinite recursion handling around @media in badly-formed CSS', function(t
   t.end();
 });
 
+test('preventing simple slippage while recursion handling (Thanks Komlev)', function(t) {
+  compareFixtures(t, 'recursion-slippage');
+  t.end();
+});
+
 
 /*END OF FILEBORN TESTS ----------------*/
 test('works when invoked with () or without', function(t) {
