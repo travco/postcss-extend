@@ -1,0 +1,27 @@
+.button {
+  all: initial;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 10px 16px;
+  border-radius: 2px;
+}
+
+.button_state_disabled {
+  cursor: default !important;
+}
+
+.button_state_hover, .button:hover:not(.button_state_disabled), .button_state_focus, .button:focus:not(.button_state_disabled) {
+  color: #FFF;
+}
+
+.button_state_active, .button:active:not(.button_state_disabled) {
+  color: #FFF;
+}
+
+.button_state_disabled {
+  background-color: disabled(#FFF);
+}
+
+.button_size_smaller {
+  padding: 4px 16px;
+}
