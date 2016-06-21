@@ -1,0 +1,11 @@
+.dark-#$%^&*blue-background {
+  background-color: #004a6b;
+  color: white;
+  box-shadow: rgba(255, 255, 255, 0.11) 0 -30px 60px inset;
+}
+
+.person__header {
+  @extend .dark-#$%^&*blue-background;
+  padding: 20px 0 1em;
+  height: 12vh;
+}

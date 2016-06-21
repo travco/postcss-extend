@@ -34,10 +34,28 @@ function p(css) {
   return postcss(extend).process(css).css;
 }
 
+
+
+
+test('extending into special character selectors', function(t) {
+  compareFixtures(t, 'specialchars-placeholder');
+  t.end();
+});
+
+
+
+
+
+
+
+
+
 test('@define-placeholder basically works', function(t) {
   compareFixtures(t, 'basic');
   t.end();
 });
+
+// specialchars define reserved
 
 test('@define-placeholder works with several added selectors', function(t) {
   compareFixtures(t, 'several-additions');
@@ -96,6 +114,11 @@ test('%placeholder works when the addto rule set is otherwise empty', function(t
 
 test('extending rules directly basically works', function(t) {
   compareFixtures(t, 'basic-direct');
+  t.end();
+});
+
+test('extending into special character selectors', function(t) {
+  compareFixtures(t, 'specialchars-direct');
   t.end();
 });
 
