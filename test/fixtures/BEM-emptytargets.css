@@ -1,0 +1,11 @@
+.Component--modifier {
+
+}
+.Component-descendant {
+	
+}
+
+.ClonedComponent {
+  @extend .Component-descendant;
+  @extend .Component--modifier;
+}

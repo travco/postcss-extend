@@ -1,0 +1,15 @@
+%foo {
+  color: blue;
+}
+%bar {
+  font-size: 12px;
+}
+%baz {
+  @extend %bar;
+  background: red;
+}
+
+.bam {
+  @extend %foo;
+  @extend %baz;
+}

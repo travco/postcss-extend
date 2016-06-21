@@ -34,28 +34,15 @@ function p(css) {
   return postcss(extend).process(css).css;
 }
 
-
-
-
-test('extending into special character selectors', function(t) {
-  compareFixtures(t, 'specialchars-placeholder');
-  t.end();
-});
-
-
-
-
-
-
-
-
-
 test('@define-placeholder basically works', function(t) {
   compareFixtures(t, 'basic');
   t.end();
 });
 
-// specialchars define reserved
+test('@define-placeholder with special characters works', function(t) {
+  compareFixtures(t, 'specialchars-placeholder');
+  t.end();
+});
 
 test('@define-placeholder works with several added selectors', function(t) {
   compareFixtures(t, 'several-additions');
@@ -157,6 +144,11 @@ test('%placeholder works even in an anti-pattern', function(t) {
   t.end();
 });
 
+test('silent placeholders work even when emplaced among other selectors', function(t) {
+  compareFixtures(t, 'silent-emplaced');
+  t.end();
+});
+
 test('direct extensions work even in an anti-pattern', function(t) {
   compareFixtures(t, 'antipattern-direct');
   t.end();
@@ -167,8 +159,9 @@ test('removes duplicate selectors automatically', function(t) {
   t.end();
 });
 
-test('bidirectionally recursive behavior on direct extensions', function(t) {
-  compareFixtures(t, 'bidirectionally-recursive');
+
+test('happily extending style-less components ', function(t) {
+  compareFixtures(t, 'BEM-emptytargets');
   t.end();
 });
 
@@ -212,7 +205,6 @@ test('extending in media doesn\'t utilize existing rules in-scope', function(t) 
   t.end();
 });
 
-
 test('extending in media will create sub rules (in-scope) for targets out of scope', function(t) {
   compareFixtures(t, 'media-advanced-sub');
   t.end();
@@ -238,8 +230,18 @@ test('has predicatable, logical ordering of selectors', function(t) {
   t.end();
 });
 
+test('bidirectionally recursive behavior on direct extensions', function(t) {
+  compareFixtures(t, 'recursion-bidirectional');
+  t.end();
+});
+
 test('full recursion even in badly-formed CSS', function(t) {
   compareFixtures(t, 'recursion-full');
+  t.end();
+});
+
+test('properly handled recursion among silent placeholders', function(t) {
+  compareFixtures(t, 'recursion-silenthop');
   t.end();
 });
 
