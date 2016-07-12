@@ -72,7 +72,7 @@ npm install postcss-extend --save
 
 ### Defining Placeholders
 
-With `@define-placeholder`, you associate a rule set with a placeholder selector, which you will later extend with concrete selectors. It (and its other aliases) can only be extended if it's already been declared in the document, and *cannot be extended-out-of*.
+With `@define-placeholder`, you associate a rule set with a placeholder selector, which you will later extend with concrete selectors. It (and its other aliases) can only be extended if it's already been declared in the document, is at the root-level (not inside anything) and *cannot be extended-out-of*.
 
 You can also use its aliases: `@define-extend` or `@extend-define`.
 
@@ -90,7 +90,21 @@ You can also use its aliases: `@define-extend` or `@extend-define`.
 
 ##### The "%" (silent) placeholder
 
-The "%" placeholder acts in exactly the same way as `@define-placeholder` and its aliases, with three exceptions. One, that it doesn't need to be declared before it is extended. Two, you can extend out of it (thus extending anything that extends the placeholder, or nothing if the placeholder isn't referenced). Three, it needs to be specifically targeted in the extend, for example: `@extend %simple-list`.
+The "%" placeholder acts similarly to `@define-placeholder` and its aliases, with four exceptions. One, that it doesn't need to be declared before it is extended. Two, you can extend out of it (thus extending anything that extends the placeholder, or nothing if the placeholder isn't referenced). Three, it needs to be specifically targeted in the extend, for example: `@extend %simple-list`. Four, it doesn't need to be at the root in order to work - and can be inside of something else (e.g. an `@media`):
+
+```css
+%container {
+  padding-left: 15px;
+}
+@media (--md-viewport) {
+  %container {
+    padding-left: 2em;
+  }
+}
+.extendingClass {
+  @extend %container;
+}
+```
 
 (`@define-placeholder`'s limitations are an originally unintended feature, kept for its possible usefulness as a stricter, more controlled method of extending).
 
