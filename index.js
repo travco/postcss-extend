@@ -223,7 +223,7 @@ module.exports = postcss.plugin('postcss-extend', function extend() {
                     //create additional nodes below existing for each instance of subs
                     // /*DEBUG*/appendout('./test/debugout.txt', '\nUtilizing new subclass for extension, as nothing matches: \n' + atRule.parent.selector + ' sub-' + extTgtSub);
                     var newNode = postcss.rule();
-                    newNode.semicolon = atRule.semicolon;
+                    newNode.raws.semicolon = atRule.raws.semicolon;
                     safeCopyDeclarations(backFirstTargetNode, newNode);
                     newNode.selector = formSubSelector(atRule.parent.selectors, extTgtSub).join(', ');
                     atRule.parent.parent.insertAfter(atRule.parent, newNode);
