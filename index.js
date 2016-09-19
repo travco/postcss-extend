@@ -323,7 +323,7 @@ module.exports = postcss.plugin('postcss-extend', function extend() {
         // /*DEBUG*/appendout('./test/debugout.txt', '\nnodeDest Nodes:\n' + nodeDest.nodes);
         var clone = node.clone();
         //For lack of a better way to analyse how much tabbing is required:
-        if (node.raws.before){
+        if (node.raws.before) {
           clone.raws.before = nodeOrigin.parent === nodeDest.parent ? node.raws.before : node.raws.before + '\t';
         }
         if (node.raws.after) clone.raws.after = node.raws.after;
