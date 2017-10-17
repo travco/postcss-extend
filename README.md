@@ -50,7 +50,7 @@ In regards to the concerns people have with Sass's `@extend`, and the problems t
 
 ## Installation
 ```
-npm install postcss-extend --save
+npm install postcss-extend --save-dev
 ```
 
 
